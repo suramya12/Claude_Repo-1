@@ -908,5 +908,44 @@
   "lon": null,
   "w": 1600,
   "h": 1200
+ },
+ "culture-block-print": {
+  "title": "Anokhi Hand Block.jpg",
+  "author": "Ketayun, Katz",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "source": "https://commons.wikimedia.org/wiki/File:Anokhi_Hand_Block.jpg",
+  "description": "Hand Block Printing",
+  "date": "2007-09-10 15:24:40",
+  "lat": null,
+  "lon": null,
+  "w": 1600,
+  "h": 1059
+ },
+ "amber-fort": {
+  "title": "A bird eye view of Amer Fort Jaipur, India.jpg",
+  "author": "APS Kondhera",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "source": "https://commons.wikimedia.org/wiki/File:A_bird_eye_view_of_Amer_Fort_Jaipur,_India.jpg",
+  "description": "The Amer Fort or The Amber Palace, Jaipur. It was built in 1562 by Raja Man Singh Ji. The Fort was built in red sandstone and marble and the Maotha Lake adds a certain charm to the entire Fort.",
+  "date": "2020-09-05 07:16:24",
+  "lat": null,
+  "lon": null,
+  "w": 1600,
+  "h": 1085
+ },
+ "blue-city": {
+  "title": "Mehrangarh Fort and the Blue City at dawn, Jodhpur.jpg",
+  "author": "Reema Jalihal",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "source": "https://commons.wikimedia.org/wiki/File:Mehrangarh_Fort_and_the_Blue_City_at_dawn,_Jodhpur.jpg",
+  "description": "A morning view of the massive ramparts of Mehrangarh Fort on its rocky hill, with the blue houses of old Jodhpur below.",
+  "date": "2023-09-30 06:24:12",
+  "lat": "26.298056",
+  "lon": "73.018889",
+  "w": 1600,
+  "h": 1200
  }
 }
