@@ -1,0 +1,12 @@
+---
+import type { Experience } from '../data/experiences';
+import { url } from '../lib/site';
+interface Props { e: Experience }
+const { e } = Astro.props;
+---
+<article class="exp reveal">
+  <svg viewBox="0 0 34 34" aria-hidden="true" set:html={e.icon} />
+  <h3>{e.place ? <a href={url(`/places/${e.place}/`)}>{e.title}</a> : e.title}</h3>
+  <p>{e.text}</p>
+  <div class="m"><span>{e.when}</span><span>{e.level}</span></div>
+</article>

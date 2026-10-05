@@ -1,0 +1,43 @@
+---
+import Base from '../../layouts/Base.astro';
+import KingdomMap from '../../components/KingdomMap.astro';
+import PlaceCard from '../../components/PlaceCard.astro';
+import { PLACES, type Place } from '../../data/places';
+
+const regions: { key: Place['region']; title: string; text: string }[] = [
+  { key: 'West', title: 'The west', text: 'Paro, Thimphu, Haa and Punakha. Where you land, and where most first trips are spent.' },
+  { key: 'Central', title: 'The centre', text: 'Phobjikha, Trongsa and the sacred valleys of Bumthang, the spiritual heart of the country.' },
+  { key: 'North', title: 'The high north', text: 'Sacred peaks and highland villages reached only on foot.' },
+  { key: 'East', title: 'The east', text: 'Far fewer visitors, weaving villages and the semi-nomadic Brokpa.' },
+  { key: 'South', title: 'The south', text: 'Subtropical jungle and the overland gateways from India.' },
+];
+const desc = 'An interactive map of 28 places across Bhutan, from Tiger’s Nest and Punakha Dzong to Royal Manas and the unclimbed peaks of the north.';
+---
+<Base title="Map of places" description={desc}>
+  <section class="wrap head">
+    <span class="eyebrow">The kingdom, pinned</span>
+    <h1 class="display">Every place<br />worth the journey</h1>
+    <p class="lede">Twenty-eight places across five regions. Filter by type, pick a pin to preview it, then open the full guide.</p>
+  </section>
+  <section class="wrap" aria-label="Interactive map"><KingdomMap /></section>
+
+  {regions.map((r) => {
+    const list = PLACES.filter((p) => p.region === r.key);
+    return (
+      <section class="wrap sec-tight" aria-labelledby={`r-${r.key}`}>
+        <div class="sec-head reveal">
+          <span class="eyebrow">{list.length} places</span>
+          <h2 class="display rh" id={`r-${r.key}`}>{r.title}</h2>
+          <p class="lede">{r.text}</p>
+        </div>
+        <div class="card-grid">{list.map((p) => <PlaceCard place={p} />)}</div>
+      </section>
+    );
+  })}
+</Base>
+
+<style>
+  .head { display: grid; gap: 18px; padding-top: calc(var(--nav-h) + clamp(40px, 6vw, 80px)); padding-bottom: 32px; }
+  h1 { font-size: clamp(2.6rem, 7vw, 6rem); }
+  .rh { font-size: clamp(2rem, 4.5vw, 3.6rem) !important; }
+</style>

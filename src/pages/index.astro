@@ -1,0 +1,167 @@
+---
+import Base from '../layouts/Base.astro';
+import Globe from '../components/Globe.astro';
+import WondersSlider from '../components/WondersSlider.astro';
+import KingdomMap from '../components/KingdomMap.astro';
+import PeaksChart from '../components/PeaksChart.astro';
+import SkyFlags from '../components/SkyFlags.astro';
+import FestivalCalendar from '../components/FestivalCalendar.astro';
+import ShareCta from '../components/ShareCta.astro';
+import Visual from '../components/Visual.astro';
+import ExperienceCard from '../components/ExperienceCard.astro';
+import { ITINERARIES } from '../data/itineraries';
+import { EXPERIENCES } from '../data/experiences';
+import { FEES } from '../data/guide';
+import { SITE, url } from '../lib/site';
+
+const why = [
+  { big: '70', unit: '%+', h: 'Still forest', p: 'The constitution requires at least 60% of the land to stay forested forever. Today it is over 70%.' },
+  { big: '1', unit: 'st', h: 'Carbon negative', p: 'Its forests absorb more CO₂ than the whole country emits, and its rivers generate clean hydroelectricity.' },
+  { big: '0', unit: '', h: 'Traffic lights in the capital', p: 'Thimphu tried one and residents found it impersonal. White-gloved police still direct traffic by hand.' },
+  { big: '7,570', unit: 'm', h: 'Never summited', p: 'Gangkhar Puensum is the highest unclimbed mountain on Earth. Bhutan has banned mountaineering since 2003 out of respect for its mountain deities.' },
+  { big: '1974', unit: '', h: 'Late to tourism', p: 'The first foreign tourists arrived for the coronation of the fourth King. The country has guarded its culture carefully ever since.' },
+  { big: `$${FEES.sdfUsd}`, unit: '/night', h: 'High value, low volume', p: 'The Sustainable Development Fee pays for free healthcare, education and conservation. It also keeps the trails quiet.' },
+];
+const featured = EXPERIENCES.slice(0, 4);
+---
+<Base overlayNav description={SITE.description} jsonld={{ '@context': 'https://schema.org', '@type': 'TouristDestination', name: 'Bhutan', description: SITE.description, geo: { '@type': 'GeoCoordinates', latitude: 27.5, longitude: 90.4 } }}>
+  <Globe />
+  <WondersSlider />
+
+  <section class="sec" id="why" aria-labelledby="why-h">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Why go</span>
+        <h2 class="display" id="why-h">A country that<br />said no to more</h2>
+        <p class="lede">Bhutan only opened to foreign tourists in 1974, and it still asks every visitor to pay into its future. In return you get monasteries that are lived in, forests protected by law and trails you share with yak herders instead of crowds.</p>
+      </div>
+      <div class="why-grid">
+        {why.map((w) => <article class="reveal"><div class="big">{w.big}{w.unit && <small>{w.unit}</small>}</div><h3>{w.h}</h3><p>{w.p}</p></article>)}
+      </div>
+      <div class="gnh">
+        <figure class="reveal">
+          <blockquote>“<b>Gross National Happiness</b> is more important than Gross Domestic Product.”</blockquote>
+          <figcaption>The fourth King, Jigme Singye Wangchuck, 1970s</figcaption>
+        </figure>
+        <ul class="pillars reveal" aria-label="Four pillars of Gross National Happiness">
+          <li><b>PILLAR I</b>Good governance</li>
+          <li><b>PILLAR II</b>Sustainable development</li>
+          <li><b>PILLAR III</b>Preserving culture</li>
+          <li><b>PILLAR IV</b>Protecting the environment</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec map-sec" id="map" aria-labelledby="map-h">
+    <div class="wrap">
+      <div class="sec-head row reveal">
+        <div class="stack">
+          <span class="eyebrow">The kingdom, pinned</span>
+          <h2 class="display" id="map-h">Tap anywhere.<br />It's all here.</h2>
+          <p class="lede">Twenty-eight places, from tiger jungle on the Indian border to glacier villages under the Tibetan plateau. Pick a pin to see what is there and what not to miss.</p>
+        </div>
+        <a class="link-arrow" href={url('/places/')}>All places <span>→</span></a>
+      </div>
+      <KingdomMap />
+    </div>
+  </section>
+
+  <section class="sec" id="peaks" aria-labelledby="peaks-h">
+    <div class="wrap">
+      <div class="sec-head row reveal">
+        <div class="stack">
+          <span class="eyebrow">Iconic mountains</span>
+          <h2 class="display" id="peaks-h">Peaks no one<br />has stood on</h2>
+          <p class="lede">Bhutan’s northern border is a wall of 7,000-metre summits that the country chooses to leave alone. You can still walk beneath them.</p>
+        </div>
+        <a class="link-arrow" href={url('/mountains/')}>Mountains & treks <span>→</span></a>
+      </div>
+      <PeaksChart />
+    </div>
+  </section>
+
+  <SkyFlags />
+
+  <section class="sec" id="seasons" aria-labelledby="seasons-h">
+    <div class="wrap">
+      <div class="sec-head row reveal">
+        <div class="stack">
+          <span class="eyebrow">When to go</span>
+          <h2 class="display" id="seasons-h">Every month<br />has a reason</h2>
+          <p class="lede">Masked dances in dzong courtyards, cranes returning from Tibet, rhododendron forests flowering red. Festival dates follow the lunar calendar, so confirm them before you book.</p>
+        </div>
+        <a class="link-arrow" href={url('/festivals/')}>Festival calendar <span>→</span></a>
+      </div>
+      <FestivalCalendar id="home-cal" />
+    </div>
+  </section>
+
+  <section class="sec" style="padding-top:0" aria-labelledby="exp-h">
+    <div class="wrap">
+      <div class="sec-head row reveal">
+        <div class="stack">
+          <span class="eyebrow">Things you can only do here</span>
+          <h2 class="display" id="exp-h">Don’t just look.<br />Live it.</h2>
+        </div>
+        <a class="link-arrow" href={url('/experiences/')}>All experiences & food <span>→</span></a>
+      </div>
+      <div class="exp-grid">
+        {featured.map((e) => <ExperienceCard e={e} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" style="padding-top:0" aria-labelledby="it-h">
+    <div class="wrap">
+      <div class="sec-head row reveal">
+        <div class="stack">
+          <span class="eyebrow">Ready-made routes</span>
+          <h2 class="display" id="it-h">Pick a route</h2>
+        </div>
+        <a class="link-arrow" href={url('/itineraries/')}>Compare itineraries <span>→</span></a>
+      </div>
+      <div class="card-grid">
+        {ITINERARIES.map((it) => (
+          <a class="pcard reveal" href={url(`/itineraries/${it.slug}/`)}>
+            <div class="media"><Visual scene={it.scene} label={`${it.name} itinerary`} still /><span class="badge">{it.nights} nights</span></div>
+            <div class="body">
+              <div class="kicker"><span>{it.style}</span></div>
+              <h3>{it.name}</h3>
+              <p>{it.summary}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <ShareCta />
+</Base>
+
+<style>
+  .stack { display: grid; gap: 18px; }
+  .why-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+  .why-grid article { padding: 34px clamp(16px, 2.4vw, 36px) 38px; border-bottom: 1px solid var(--line); display: grid; gap: 12px; align-content: start; }
+  .why-grid article:nth-child(3n + 1) { padding-left: 0; }
+  .why-grid article:not(:nth-child(3n + 1)) { border-left: 1px solid var(--line); }
+  .big { font-family: var(--display); font-stretch: 125%; font-weight: 800; font-size: clamp(2.6rem, 5vw, 4.4rem); line-height: 0.9; font-variant-numeric: tabular-nums; }
+  .big small { font-size: 0.42em; color: var(--saffron); margin-left: 4px; font-weight: 600; }
+  .why-grid p { color: var(--mist); font-size: 15.5px; max-width: 42ch; }
+  @media (max-width: 900px) {
+    .why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .why-grid article:nth-child(n) { padding-left: 0; border-left: 0; }
+    .why-grid article:nth-child(2n) { padding-left: 16px; border-left: 1px solid var(--line); }
+  }
+  @media (max-width: 560px) { .why-grid { grid-template-columns: minmax(0, 1fr); } .why-grid article:nth-child(n) { padding-left: 0; border-left: 0; } }
+  .gnh { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(24px, 5vw, 80px); margin-top: clamp(56px, 8vw, 110px); align-items: center; }
+  .gnh figure { margin: 0; }
+  blockquote { margin: 0; font-family: var(--display); font-weight: 300; font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1.18; text-wrap: balance; }
+  blockquote b { font-weight: 700; color: var(--saffron); }
+  figcaption { margin-top: 16px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; color: var(--fog); text-transform: uppercase; }
+  .pillars { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .pillars li { padding: 16px 18px; border: 1px solid var(--line); border-radius: 6px; background: var(--slate); font-size: 15px; }
+  .pillars b { display: block; font-family: var(--mono); font-size: 11px; color: var(--saffron); letter-spacing: 0.12em; margin-bottom: 4px; font-weight: 500; }
+  @media (max-width: 800px) { .gnh { grid-template-columns: minmax(0, 1fr); } }
+  .map-sec { background: linear-gradient(180deg, var(--night), var(--night-2) 30%, var(--night-2) 70%, var(--night)); }
+</style>

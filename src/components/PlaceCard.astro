@@ -1,0 +1,22 @@
+---
+import Visual from './Visual.astro';
+import { CATEGORIES, type Place } from '../data/places';
+import { wonderIndex } from '../data/wonders';
+import { url } from '../lib/site';
+
+interface Props { place: Place; note?: string; headingLevel?: 2 | 3 }
+const { place: p, note, headingLevel = 3 } = Astro.props;
+const wi = wonderIndex(p.slug);
+const H = `h${headingLevel}` as 'h2' | 'h3';
+---
+<a class="pcard" href={url(`/places/${p.slug}/`)}>
+  <div class="media">
+    <Visual slug={p.slug} label={`${p.name}, illustrated`} sizes="(max-width: 700px) 100vw, 33vw" still />
+    {wi >= 0 && <span class="badge">Wonder {String(wi + 1).padStart(2, '0')}</span>}
+  </div>
+  <div class="body">
+    <div class="kicker"><span style={`color:${CATEGORIES[p.cat].color}`}>{CATEGORIES[p.cat].label}</span><span>{note ?? p.alt}</span></div>
+    <H>{p.name}</H>
+    <p>{p.summary}</p>
+  </div>
+</a>

@@ -1,0 +1,60 @@
+---
+import Base from '../layouts/Base.astro';
+import { PHOTOS } from '../data/photos';
+import { placeBySlug } from '../data/places';
+import { SITE, url } from '../lib/site';
+const photos = Object.entries(PHOTOS);
+const sources: [string, string][] = [
+  ['Department of Tourism, Bhutan', 'https://www.bhutan.travel'],
+  ['Tourism in Bhutan (Wikipedia)', 'https://en.wikipedia.org/wiki/Tourism_in_Bhutan'],
+  ['Bhutan SDF 2026 rates', 'https://littlebhutan.com/travel-guide/bhutan-sdf/'],
+  ['Gangkhar Puensum (Wikipedia)', 'https://en.wikipedia.org/wiki/Gangkhar_Puensum'],
+  ['Paro International Airport (Wikipedia)', 'https://en.wikipedia.org/wiki/Paro_International_Airport'],
+  ['Trans Bhutan Trail (Wikipedia)', 'https://en.wikipedia.org/wiki/Trans_Bhutan_Trail'],
+  ['Snowman Trek (Wikipedia)', 'https://en.wikipedia.org/wiki/Snowman_Trek'],
+  ['Dochula Pass (Wikipedia)', 'https://en.wikipedia.org/wiki/Dochula_Pass'],
+  ['Buddha Dordenma (Wikipedia)', 'https://en.wikipedia.org/wiki/Buddha_Dordenma_statue'],
+  ['Black-necked cranes in Bhutan (Wikipedia)', 'https://en.wikipedia.org/wiki/Black-necked_cranes_in_Bhutan'],
+  ['Black-necked Crane Festival', 'https://www.mybhutan.com/explorer/festivals/black-necked-crane-festival'],
+  ['Bhutan festivals calendar 2026', 'https://www.drukasia.com/bhutan/bhutan-festivals-calendar-2026/'],
+  ['How Bhutan became carbon negative (Climate Council)', 'https://www.climatecouncil.org.au/bhutan-is-the-world-s-only-carbon-negative-country-so-how-did-they-do-it/'],
+  ['Gelephu Mindfulness City (Wikipedia)', 'https://en.wikipedia.org/wiki/Gelephu_Mindfulness_City'],
+  ['WWF Bhutan', 'https://www.wwfbhutan.org.bt/'],
+  ['Natural Earth map data via world-atlas', 'https://github.com/topojson/world-atlas'],
+];
+---
+<Base title="About & sources" description="Who made Into Bhutan, where its facts come from, and credits for maps and photography.">
+  <section class="wrap-narrow head prose">
+    <span class="eyebrow">About</span>
+    <h1 class="display">About this guide</h1>
+    <p><strong>Into Bhutan</strong> is an independent guide that sets out to answer one question for a friend: why should I go to Bhutan? It covers the places worth the journey, when to go, how to get there and what it costs.</p>
+    <p>It is not affiliated with the Royal Government of Bhutan or any tour operator, and it does not take commissions. Facts were checked in {SITE.checked}. Visa rules, the Sustainable Development Fee and lunar festival dates change, so confirm them with the <a href="https://www.bhutan.travel" target="_blank" rel="noopener">Department of Tourism</a> or a licensed operator before booking.</p>
+
+    <h2>The illustrations</h2>
+    <p>Wherever a photograph is not shown, the landscape you see is painted live in your browser by code: layered ridgelines, dzongs, chortens, prayer flags and cranes drawn on a canvas. They are interpretations, not records, and they are designed to load instantly and stay sharp on any screen.</p>
+
+    <h2 id="credits">Photo credits</h2>
+    {photos.length ? (
+      <ul class="credits">
+        {photos.map(([slug, p]) => (
+          <li><a href={url(`/places/${slug}/`)}>{placeBySlug(slug)?.name}</a>: “<a href={p.source} target="_blank" rel="noopener">{p.title}</a>” by {p.author}, <a href={p.licenseUrl} target="_blank" rel="noopener">{p.license}</a>.</li>
+        ))}
+      </ul>
+    ) : <p>All imagery on this site is currently illustrated. Licensed photographs will be credited here as they are added.</p>}
+
+    <h2>Maps</h2>
+    <p>Country outlines come from Natural Earth (public domain) via the world-atlas package. Place positions are approximate and meant for orientation, not navigation.</p>
+
+    <h2>Sources</h2>
+    <ul>{sources.map(([t, h]) => <li><a href={h} target="_blank" rel="noopener">{t}</a></li>)}</ul>
+
+    <h2>Corrections</h2>
+    <p>Spotted something out of date? Open an issue on the <a href="https://github.com/suramya12/Claude_Repo-1/issues" target="_blank" rel="noopener">project’s GitHub repository</a>.</p>
+  </section>
+</Base>
+
+<style>
+  .head { padding-top: calc(var(--nav-h) + clamp(40px, 6vw, 80px)); padding-bottom: clamp(72px, 10vw, 140px); }
+  h1 { font-size: clamp(2.6rem, 6vw, 5rem); margin-bottom: 0.3em; }
+  .credits { font-size: 15px; }
+</style>

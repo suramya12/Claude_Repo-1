@@ -1,0 +1,54 @@
+---
+import Base from '../layouts/Base.astro';
+import Visual from '../components/Visual.astro';
+import ShareCta from '../components/ShareCta.astro';
+import { WONDERS } from '../data/wonders';
+import { placeBySlug } from '../data/places';
+import { url } from '../lib/site';
+const desc = 'Tiger’s Nest, Punakha Dzong, Gangkhar Puensum, Dochula, Buddha Dordenma, Phobjikha and Jomolhari: seven reasons to visit Bhutan.';
+const ld = { '@context': 'https://schema.org', '@type': 'ItemList', name: 'Seven wonders of Bhutan', itemListElement: WONDERS.map((w, i) => ({ '@type': 'ListItem', position: i + 1, name: w.title.join(' '), url: new URL(url(`/places/${w.slug}/`), Astro.site).href })) };
+---
+<Base title="The seven wonders" description={desc} jsonld={ld}>
+  <section class="wrap head">
+    <span class="eyebrow">Seven wonders</span>
+    <h1 class="display">Seven reasons<br />to go</h1>
+    <p class="lede">Bhutan has no official list of wonders, so this is ours: four sacred places and three mountains you will remember long after the trip. Each links to a full guide.</p>
+    <ol class="toc">{WONDERS.map((w, i) => <li><a href={`#${w.slug}`}><span class="mono">{String(i + 1).padStart(2, '0')}</span>{w.title.join(' ')}</a></li>)}</ol>
+  </section>
+
+  {WONDERS.map((w, i) => {
+    const p = placeBySlug(w.slug)!;
+    return (
+      <section class:list={['wonder', { flip: i % 2 }]} id={w.slug} aria-labelledby={`${w.slug}-h`}>
+        <div class="media reveal"><Visual slug={w.slug} label={`${p.name}, illustrated`} credit /></div>
+        <div class="text reveal">
+          <span class="eyebrow">Wonder {String(i + 1).padStart(2, '0')} · {p.district}</span>
+          <h2 class="display" id={`${w.slug}-h`}>{w.title.join(' ')}</h2>
+          {p.tib && <p class="tib" lang="dz">{p.tib}</p>}
+          <p class="lede">{w.card}</p>
+          <div class="stats">{w.stats.map(([v, u, l]) => <div><b>{v}{u && <small>{u}</small>}</b><span>{l}</span></div>)}</div>
+          <dl class="facts">{w.meta.map(([a, b]) => <><dt>{a}</dt><dd>{b}</dd></>)}</dl>
+          <a class="btn" href={url(`/places/${w.slug}/`)}>Read the guide to {p.name}</a>
+        </div>
+      </section>
+    );
+  })}
+  <ShareCta title="Seven reasons. One trip." />
+</Base>
+
+<style>
+  .head { display: grid; gap: 18px; padding-top: calc(var(--nav-h) + clamp(40px, 6vw, 80px)); padding-bottom: clamp(40px, 6vw, 80px); }
+  h1 { font-size: clamp(2.6rem, 7vw, 6rem); }
+  .toc { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .toc a { display: inline-flex; gap: 10px; align-items: baseline; padding: 8px 14px; border: 1px solid var(--line-2); border-radius: 999px; text-decoration: none; font-size: 14px; }
+  .toc a:hover { border-color: var(--saffron); }
+  .toc .mono { font-size: 11px; color: var(--saffron); }
+  .wonder { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 64px); align-items: center; padding: clamp(40px, 6vw, 80px) var(--gutter); max-width: 1440px; margin-inline: auto; }
+  .wonder.flip .media { order: 2; }
+  .media { aspect-ratio: 4 / 3; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); max-width: 100%; }
+  .text { display: grid; gap: 18px; justify-items: start; min-width: 0; }
+  .text > * { max-width: 100%; }
+  .text h2 { font-size: clamp(2.2rem, 5vw, 4.2rem); }
+  .tib { font-size: 1.5rem; color: var(--mist); }
+  @media (max-width: 860px) { .wonder { grid-template-columns: minmax(0, 1fr); } .wonder.flip .media { order: 0; } }
+</style>

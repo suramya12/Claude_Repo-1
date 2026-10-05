@@ -1,0 +1,83 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import FeeCalculator from '../components/FeeCalculator.astro';
+import { GUIDE, FAQ, FEES } from '../data/guide';
+import { SITE, url } from '../lib/site';
+const desc = `How to plan a trip to Bhutan: visa, the USD ${FEES.sdfUsd} Sustainable Development Fee, flights, guides, money, altitude, etiquette, packing and answers to common questions.`;
+const faqLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<Base title="Plan your trip" description={desc} jsonld={faqLd}>
+  <PageHero scene="taktsang" eyebrow="Travel guide" title="Plan your trip" lede="Everything you need before you book: entry rules and fees, getting there, money, health, etiquette and what to pack." label="Painted Tiger's Nest on its cliff" />
+
+  <div class="wrap sec-tight layout">
+    <nav class="toc" aria-label="On this page">
+      <span class="eyebrow">On this page</span>
+      <ol>
+        <li><a href="#fees">Fee calculator</a></li>
+        {GUIDE.map((g) => <li><a href={`#${g.id}`}>{g.title}</a></li>)}
+        <li><a href="#faq">FAQ</a></li>
+      </ol>
+      <p class="note">Checked {SITE.checked}. Confirm current rules with the <a href="https://www.bhutan.travel" target="_blank" rel="noopener">Department of Tourism</a>.</p>
+    </nav>
+
+    <div class="content">
+      <section id="fees" aria-labelledby="fees-h" class="block">
+        <h2 id="fees-h">Fee calculator</h2>
+        <p class="muted">Work out the Sustainable Development Fee and visa cost for your group. Pick a ready-made route to fill in the nights:</p>
+        <div class="presets">{[5, 8, 9, 12].map((n) => <button class="chip" type="button" data-set-nights={n}>{n} nights</button>)}</div>
+        <FeeCalculator nights={7} id="plan-calc" />
+      </section>
+
+      {GUIDE.map((g) => (
+        <section id={g.id} aria-labelledby={`${g.id}-h`} class="block">
+          <h2 id={`${g.id}-h`}>{g.title}</h2>
+          <dl class="items">{g.items.map((it) => <div class="reveal"><dt>{it.h}</dt><dd>{it.p}</dd></div>)}</dl>
+        </section>
+      ))}
+
+      <section id="faq" aria-labelledby="faq-h" class="block">
+        <h2 id="faq-h">Frequently asked questions</h2>
+        <div class="faq">
+          {FAQ.map((f) => (
+            <details>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section class="block next" aria-label="Next steps">
+        <a class="btn" href={url('/itineraries/')}>Choose an itinerary</a>
+        <a class="btn ghost" href={url('/festivals/')}>Check festival dates</a>
+      </section>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: start; }
+  .toc { position: sticky; top: calc(var(--nav-h) + 24px); display: grid; gap: 14px; }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; border-left: 1px solid var(--line); }
+  .toc a { display: block; padding: 6px 0 6px 16px; text-decoration: none; color: var(--mist); font-size: 14.5px; margin-left: -1px; border-left: 2px solid transparent; }
+  .toc a:hover { color: var(--snow); border-left-color: var(--saffron); }
+  .toc .note a { color: var(--mist); }
+  .content { display: grid; gap: clamp(48px, 6vw, 80px); min-width: 0; max-width: 820px; }
+  .block { display: grid; gap: 18px; scroll-margin-top: calc(var(--nav-h) + 20px); }
+  .block h2 { font-family: var(--display); font-stretch: 125%; font-weight: 800; text-transform: uppercase; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0; line-height: 1; }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; }
+  .items { margin: 0; display: grid; border-top: 1px solid var(--line); }
+  .items > div { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 20px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .items dt { font-family: var(--display); font-stretch: 112%; font-weight: 700; font-size: 1.05rem; }
+  .items dd { margin: 0; color: var(--mist); }
+  .faq { display: grid; border-top: 1px solid var(--line); }
+  details { border-bottom: 1px solid var(--line); }
+  summary { cursor: pointer; list-style: none; padding: 18px 40px 18px 0; position: relative; font-weight: 600; font-size: 1.05rem; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; position: absolute; right: 6px; top: 14px; font-size: 1.4rem; color: var(--saffron); transition: transform 0.25s; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { color: var(--mist); padding: 0 0 20px; max-width: 66ch; }
+  .next { display: flex; flex-wrap: wrap; gap: 12px; }
+  @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } .toc { position: static; } .items > div { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
+</style>

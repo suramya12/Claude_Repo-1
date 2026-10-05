@@ -1,0 +1,65 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import FestivalCalendar from '../components/FestivalCalendar.astro';
+import { MONTHS, SEASONS } from '../data/festivals';
+import { placeBySlug } from '../data/places';
+import { url } from '../lib/site';
+const desc = 'Bhutan’s festival calendar month by month: Paro and Thimphu Tshechu, the Black-necked Crane Festival, Dochula’s open-air dances and the best season for every kind of trip.';
+const all = MONTHS.flatMap((m) => m.festivals.map((f) => ({ ...f, month: m.name })));
+const events = all.filter((f) => f.iso).map((f) => {
+  const p = f.place ? placeBySlug(f.place) : undefined;
+  return { '@context': 'https://schema.org', '@type': 'Festival', name: f.name, startDate: f.iso, description: f.text, eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode', location: { '@type': 'Place', name: p?.name ?? 'Bhutan', address: { '@type': 'PostalAddress', addressCountry: 'BT', addressRegion: p?.district } } };
+});
+---
+<Base title="Festival calendar" description={desc} jsonld={events}>
+  <PageHero scene="dochula" eyebrow="When to go" title="Every month has a reason" lede="Tshechus are the great religious festivals of Bhutan: days of masked dances in dzong courtyards, held to honour Guru Rinpoche and open to everyone." label="Painted dawn over the 108 chortens at Dochula" />
+
+  <section class="wrap sec-tight" aria-labelledby="cal-h"><h2 class="sr-only" id="cal-h">Month by month</h2><FestivalCalendar id="cal" /></section>
+
+  <section class="wrap sec-tight" aria-labelledby="all-h">
+    <div class="sec-head"><span class="eyebrow">{all.length} festivals</span><h2 class="display sm" id="all-h">The year at a glance</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">When</th><th scope="col">Festival</th><th scope="col">Where</th><th scope="col">Season</th></tr></thead>
+        <tbody>
+          {MONTHS.flatMap((m) => m.festivals.map((f) => (
+            <tr>
+              <td class="mono">{f.date}</td>
+              <th scope="row">{f.name}</th>
+              <td>{f.place ? <a href={url(`/places/${f.place}/`)}>{placeBySlug(f.place)?.name}</a> : 'Various'}</td>
+              <td><span class="dot" style={`--sc:${SEASONS[m.season].color}`}></span>{SEASONS[m.season].label}</td>
+            </tr>
+          )))}
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Dates marked with a year are confirmed for that year. Lunar-calendar festivals move every year, so check with your operator before you book flights.</p>
+  </section>
+
+  <section class="wrap-narrow sec-tight prose" aria-labelledby="et-h">
+    <h2 id="et-h">Festival etiquette</h2>
+    <ul>
+      <li><strong>Dress up.</strong> Locals wear their best gho and kira. Long sleeves and long trousers or skirts are expected of visitors too.</li>
+      <li><strong>Keep the dance floor clear.</strong> Sit or stand where locals do, never in the dancers’ space, and do not walk across the courtyard during a dance.</li>
+      <li><strong>Photograph quietly.</strong> No flash, no drones, and some sacred dances may not be photographed at all. Ask your guide.</li>
+      <li><strong>Laugh with the atsaras.</strong> The masked jesters tease the crowd and bless people with a wooden phallus. It is all part of the festival.</li>
+      <li><strong>Book early.</strong> Hotels in Paro and Thimphu fill months ahead for the Tshechus.</li>
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .sm { font-size: clamp(2rem, 4.5vw, 3.6rem) !important; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; min-width: 620px; font-size: 15px; }
+  th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fog); font-weight: 500; background: var(--slate); }
+  tbody th { font-weight: 600; }
+  td { color: var(--mist); }
+  td.mono { color: var(--saffron); font-size: 13px; white-space: nowrap; }
+  td a { color: var(--snow); text-decoration-color: var(--saffron); text-underline-offset: 3px; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sc); margin-right: 8px; }
+  tbody tr:last-child > * { border-bottom: 0; }
+  .note { margin-top: 14px; }
+</style>

@@ -1,0 +1,47 @@
+---
+import Visual from './Visual.astro';
+import { url } from '../lib/site';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  tib?: string;
+  lede?: string;
+  slug?: string;
+  scene?: string;
+  label?: string;
+  crumbs?: [string, string][];
+  tall?: boolean;
+}
+const { eyebrow, title, tib, lede, slug, scene, label = title, crumbs, tall = false } = Astro.props;
+---
+<section class:list={['phero', { tall }]} data-nav-solid-after>
+  <div class="bg"><Visual slug={slug} scene={scene} label={label} eager credit sizes="100vw" /></div>
+  <div class="wrap inner">
+    {crumbs && (
+      <nav aria-label="Breadcrumb">
+        <ol class="crumbs">
+          <li><a href={url('/')}>Home</a></li>
+          {crumbs.map(([href, name], i) => <li>{i === crumbs.length - 1 ? <span aria-current="page">{name}</span> : <a href={url(href)}>{name}</a>}</li>)}
+        </ol>
+      </nav>
+    )}
+    {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+    <h1 class="display">{title}</h1>
+    {tib && <p class="tib" lang="dz">{tib}</p>}
+    {lede && <p class="lede">{lede}</p>}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .phero { position: relative; min-height: clamp(460px, 72vh, 760px); display: flex; align-items: flex-end; overflow: hidden; isolation: isolate; }
+  .phero.tall { min-height: clamp(520px, 86vh, 900px); }
+  .bg { position: absolute; inset: 0; z-index: -1; }
+  .bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, var(--night) 0%, rgba(10, 14, 17, 0.55) 40%, rgba(10, 14, 17, 0.1) 75%, rgba(10, 14, 17, 0.5) 100%), linear-gradient(90deg, rgba(10, 14, 17, 0.6), rgba(10, 14, 17, 0) 60%); pointer-events: none; }
+  .inner { width: 100%; display: grid; gap: 16px; padding-top: calc(var(--nav-h) + 48px); padding-bottom: clamp(40px, 6vw, 72px); }
+  .inner > :global(*) { min-width: 0; }
+  h1 { font-size: clamp(2.6rem, 8vw, 6.6rem); max-width: 16ch; }
+  .tib { font-size: clamp(1.3rem, 2.4vw, 1.8rem); color: var(--mist); }
+  .lede { color: var(--snow); opacity: 0.85; }
+</style>

@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import PeaksChart from '../components/PeaksChart.astro';
+import LocatorMap from '../components/LocatorMap.astro';
+import PlaceCard from '../components/PlaceCard.astro';
+import { TREKS } from '../data/mountains';
+import { PLACES, placeBySlug } from '../data/places';
+import { url } from '../lib/site';
+const desc = 'Bhutan’s unclimbed Himalaya, why mountaineering is banned, and the six best treks from an overnight to Tiger’s Nest to the 25-day Snowman Trek.';
+const peaks = PLACES.filter((p) => p.cat === 'peaks');
+---
+<Base title="Mountains & treks" description={desc}>
+  <PageHero scene="range" eyebrow="Iconic mountains" title="Peaks no one has stood on" lede="Bhutan’s northern border is a wall of 7,000-metre summits that the country has chosen to leave alone. You cannot climb them. You can walk beneath them." label="Painted Himalayan range at night" />
+
+  <section class="wrap sec-tight" aria-labelledby="chart-h">
+    <div class="sec-head">
+      <span class="eyebrow">To scale</span>
+      <h2 class="display sm" id="chart-h">The wall of the north</h2>
+      <p class="lede">Select a peak. The dashed lines mark heights you will actually reach as a visitor.</p>
+    </div>
+    <PeaksChart />
+  </section>
+
+  <section class="wrap-narrow sec-tight prose" aria-labelledby="ban-h">
+    <h2 id="ban-h">Why the mountains are closed</h2>
+    <p>In Bhutanese belief, high peaks are the homes of protective deities. Climbing onto a summit is disrespectful to the gods and, for the people living in the valleys below, potentially dangerous.</p>
+    <p>Bhutan allowed limited mountaineering after it opened to tourism, and a handful of peaks were attempted in the 1980s, including four unsuccessful expeditions to Gangkhar Puensum. In 1994 the government banned climbing above 6,000 metres, and in 2003 it banned mountaineering altogether.</p>
+    <p>The result is a range of untouched summits, including the highest unclimbed mountain on Earth. Trekking is still allowed and some of the best trekking in the Himalaya is here: high, remote and rarely crowded.</p>
+  </section>
+
+  <section class="wrap sec-tight" aria-labelledby="treks-h">
+    <div class="sec-head">
+      <span class="eyebrow">Six treks</span>
+      <h2 class="display sm" id="treks-h">Walk beneath them</h2>
+      <p class="lede">All treks need a licensed guide and are run by Bhutanese operators with a trekking crew, cook and pack animals. Grades describe effort and altitude, not technical climbing.</p>
+    </div>
+    <div class="treks">
+      {TREKS.map((t) => (
+        <article class="trek reveal" id={t.slug}>
+          <div class="info">
+            <span class:list={['grade', t.grade.toLowerCase()]}>{t.grade}</span>
+            <h3>{t.name}</h3>
+            <p class="route mono">{t.route}</p>
+            <p>{t.text}</p>
+            <dl class="facts">
+              <dt>Duration</dt><dd>{t.days}</dd>
+              <dt>High point</dt><dd>{t.maxAlt}</dd>
+              <dt>Season</dt><dd>{t.season}</dd>
+            </dl>
+            <p class="links">Passes: {t.places.map((s, i) => <>{i > 0 && ', '}<a href={url(`/places/${s}/`)}>{placeBySlug(s)?.name}</a></>)}</p>
+          </div>
+          <LocatorMap highlight={t.places} route={t.places.length > 1} label={`${t.name} route`} />
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap sec-tight" aria-labelledby="pp-h">
+    <div class="sec-head"><span class="eyebrow">Peaks & passes</span><h2 class="display sm" id="pp-h">Where to see them</h2></div>
+    <div class="card-grid">{peaks.map((p) => <PlaceCard place={p} />)}</div>
+  </section>
+</Base>
+
+<style>
+  .sm { font-size: clamp(2rem, 4.5vw, 3.6rem) !important; }
+  .treks { display: grid; gap: 20px; }
+  .trek { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px); padding: clamp(20px, 3vw, 32px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--slate); align-items: start; scroll-margin-top: calc(var(--nav-h) + 16px); }
+  .info { display: grid; gap: 12px; justify-items: start; }
+  .info > p { color: var(--mist); }
+  .route { font-size: 12.5px; color: var(--saffron) !important; letter-spacing: 0.04em; }
+  .grade { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; border: 1px solid currentColor; }
+  .grade.easy { color: var(--pine); } .grade.moderate { color: var(--sky); } .grade.hard { color: var(--saffron); } .grade.extreme { color: #e0705c; }
+  .links { font-size: 14px; }
+  .links a { color: var(--snow); text-decoration-color: var(--saffron); text-underline-offset: 3px; }
+  @media (max-width: 860px) { .trek { grid-template-columns: minmax(0, 1fr); } }
+</style>

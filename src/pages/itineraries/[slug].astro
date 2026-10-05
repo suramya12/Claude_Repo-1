@@ -1,0 +1,83 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import LocatorMap from '../../components/LocatorMap.astro';
+import FeeCalculator from '../../components/FeeCalculator.astro';
+import { ITINERARIES, type Itinerary } from '../../data/itineraries';
+import { placeBySlug } from '../../data/places';
+import { FEES } from '../../data/guide';
+import { fmt, url } from '../../lib/site';
+
+export function getStaticPaths() {
+  return ITINERARIES.map((it) => ({ params: { slug: it.slug }, props: { it } }));
+}
+interface Props { it: Itinerary }
+const { it } = Astro.props;
+const stops = [...new Set(it.days.flatMap((d) => d.places ?? []))];
+const others = ITINERARIES.filter((o) => o.slug !== it.slug);
+const ld = {
+  '@context': 'https://schema.org', '@type': 'TouristTrip', name: `${it.name}: ${it.nights} nights in Bhutan`, description: it.summary,
+  itinerary: { '@type': 'ItemList', itemListElement: stops.map((s, i) => ({ '@type': 'ListItem', position: i + 1, item: { '@type': 'TouristAttraction', name: placeBySlug(s)?.name } })) },
+};
+---
+<Base title={`${it.name} · ${it.nights}-night itinerary`} description={it.summary} type="article" jsonld={ld}>
+  <PageHero scene={it.scene} eyebrow={`${it.nights} nights · ${it.style}`} title={it.name} lede={it.summary} crumbs={[['/itineraries/', 'Itineraries'], ['', it.name]]} label={`${it.name} itinerary`}>
+    <div class="stats"><div><b>{it.nights}<small>nights</small></b><span>In Bhutan</span></div><div><b>{stops.length}</b><span>Places</span></div><div><b>${fmt(it.nights * FEES.sdfUsd)}</b><span>SDF per adult</span></div></div>
+  </PageHero>
+
+  <div class="wrap sec-tight layout">
+    <div>
+      <ol class="days">
+        {it.days.map((d) => (
+          <li class="reveal">
+            <span class="dn">{d.day}</span>
+            <div>
+              <h2>{d.title}</h2>
+              {d.text && <p>{d.text}</p>}
+              {d.places && <p class="stops">{d.places.map((s) => <a class="tag" href={url(`/places/${s}/`)}>{placeBySlug(s)?.name}</a>)}</p>}
+            </div>
+          </li>
+        ))}
+      </ol>
+      <dl class="facts meta">
+        <dt>Best for</dt><dd>{it.bestFor}</dd>
+        <dt>Seasons</dt><dd>{it.seasons}</dd>
+        <dt>Booking</dt><dd>Through any licensed Bhutanese tour operator, who will arrange visa, guide, driver and hotels. Ask them to adjust the route around festival dates.</dd>
+      </dl>
+    </div>
+    <aside class="side">
+      <LocatorMap highlight={stops} route label={`${it.name} route`} />
+      <FeeCalculator nights={it.nights} />
+    </aside>
+  </div>
+
+  <section class="wrap sec-tight" aria-labelledby="more-h">
+    <div class="sec-head"><span class="eyebrow">Other routes</span><h2 class="display sm" id="more-h">Compare</h2></div>
+    <ul class="others">
+      {others.map((o) => <li><a href={url(`/itineraries/${o.slug}/`)}><span class="mono">{o.nights} nights</span><b>{o.name}</b><span>{o.summary}</span></a></li>)}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 72px); align-items: start; }
+  .days { list-style: none; margin: 0; padding: 0; }
+  .days li { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: 18px; padding: 20px 0; border-top: 1px solid var(--line); }
+  .dn { font-family: var(--mono); font-size: 12px; color: var(--saffron); letter-spacing: 0.1em; text-transform: uppercase; padding-top: 4px; }
+  .days h2 { font-family: var(--display); font-stretch: 112%; font-weight: 700; font-size: 1.3rem; margin: 0 0 6px; }
+  .days p { color: var(--mist); }
+  .stops { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px !important; }
+  .stops a { text-decoration: none; }
+  .stops a:hover { color: var(--snow); background: rgba(231, 163, 62, 0.15); }
+  .meta { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .side { display: grid; gap: 16px; position: sticky; top: calc(var(--nav-h) + 16px); }
+  .sm { font-size: clamp(2rem, 4.5vw, 3.6rem) !important; }
+  .others { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .others a { display: grid; gap: 8px; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--slate); text-decoration: none; height: 100%; transition: border-color 0.2s; }
+  .others a:hover { border-color: var(--saffron); }
+  .others .mono { font-size: 11px; color: var(--saffron); letter-spacing: 0.12em; text-transform: uppercase; }
+  .others b { font-family: var(--display); font-stretch: 112%; font-size: 1.2rem; }
+  .others span:last-child { color: var(--mist); font-size: 14.5px; }
+  @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } .side { position: static; } .others { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 520px) { .days li { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
+</style>

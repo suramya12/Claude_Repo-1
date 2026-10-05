@@ -1,0 +1,75 @@
+---
+/* Government-fee calculator: Sustainable Development Fee plus visa. Pure client-side arithmetic. */
+import { FEES } from '../data/guide';
+interface Props { nights?: number; id?: string }
+const { nights = 7, id = 'calc' } = Astro.props;
+---
+<form class="calc panel" id={id} aria-label="Sustainable Development Fee calculator" data-sdf={FEES.sdfUsd} data-visa={FEES.visaUsd} data-inr={FEES.sdfInr} data-bd={FEES.sdfBdUsd}>
+  <h3>Fee calculator</h3>
+  <div class="field">
+    <label for={`${id}-nat`}>Travelling on a passport from</label>
+    <select id={`${id}-nat`} name="nat">
+      <option value="intl">Most countries</option>
+      <option value="in">India</option>
+      <option value="bd">Bangladesh</option>
+    </select>
+  </div>
+  <div class="field">
+    <span class="lbl" id={`${id}-nl`}>Nights in Bhutan</span>
+    <div class="range"><input type="range" id={`${id}-nights`} name="nights" min="1" max="30" value={nights} aria-labelledby={`${id}-nl`} /><output for={`${id}-nights`}>{nights}</output></div>
+  </div>
+  <div class="row3">
+    <div class="field"><label for={`${id}-ad`}>Age 12+</label><input type="number" id={`${id}-ad`} name="ad" min="1" max="30" value="2" inputmode="numeric" /></div>
+    <div class="field"><label for={`${id}-kd`}>Age 6–11</label><input type="number" id={`${id}-kd`} name="kd" min="0" max="30" value="0" inputmode="numeric" /></div>
+    <div class="field"><label for={`${id}-tt`}>Under 6</label><input type="number" id={`${id}-tt`} name="tt" min="0" max="30" value="0" inputmode="numeric" /></div>
+  </div>
+  <div class="total" aria-live="polite"></div>
+  <p class="note">Government fees only. Hotels, a licensed guide, a driver and meals are booked separately, usually through a Bhutanese tour operator or your hotel. The SDF is set at USD {FEES.sdfUsd} per night until {FEES.sdfValidUntil}.</p>
+</form>
+
+<style>
+  .calc { display: grid; gap: 18px; }
+  h3 { font-size: 1.4rem; }
+  .row3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .range { display: flex; align-items: center; gap: 14px; }
+  .range input { flex: 1; accent-color: var(--saffron); min-width: 0; }
+  output { font-family: var(--display); font-stretch: 112%; font-weight: 700; font-size: 1.4rem; min-width: 2.5ch; text-align: right; font-variant-numeric: tabular-nums; }
+  .total { display: grid; gap: 8px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .total :global(.line) { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; color: var(--mist); }
+  .total :global(.line b) { color: var(--snow); font-weight: 500; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .total :global(.grand) { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 6px; }
+  .total :global(.grand b) { font-family: var(--display); font-stretch: 125%; font-weight: 800; font-size: 2.2rem; color: var(--saffron); font-variant-numeric: tabular-nums; }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('form.calc').forEach((f) => {
+    const ds = f.dataset;
+    const RATES = {
+      intl: { sym: '$', sdf: +ds.sdf!, visa: +ds.visa! },
+      in: { sym: '₹', sdf: +ds.inr!, visa: 0 },
+      bd: { sym: '$', sdf: +ds.bd!, visa: 0 },
+    } as const;
+    const el = <T extends HTMLElement>(name: string) => f.elements.namedItem(name) as unknown as T;
+    const int = (name: string, min: number) => { const v = Math.floor(+el<HTMLInputElement>(name).value); return Number.isFinite(v) ? Math.max(min, Math.min(30, v)) : min; };
+    const fmt = (n: number) => Math.round(n).toLocaleString('en-US');
+    function calc() {
+      const R = RATES[el<HTMLSelectElement>('nat').value as keyof typeof RATES];
+      const nights = int('nights', 1), ad = int('ad', 0), kd = int('kd', 0), tt = int('tt', 0);
+      f.querySelector('output')!.textContent = String(nights);
+      const sdfA = ad * nights * R.sdf, sdfK = kd * nights * (R.sdf / 2), visa = (ad + kd + tt) * R.visa, tot = sdfA + sdfK + visa;
+      const m = (v: number) => R.sym + fmt(v);
+      const pl = (n: number, s: string, p = s + 's') => `${n} ${n === 1 ? s : p}`;
+      f.querySelector('.total')!.innerHTML = `
+        <div class="line"><span>SDF · ${pl(ad, 'adult')} × ${pl(nights, 'night')} × ${m(R.sdf)}</span><b>${m(sdfA)}</b></div>
+        ${kd ? `<div class="line"><span>SDF · ${pl(kd, 'child', 'children')} at half rate</span><b>${m(sdfK)}</b></div>` : ''}
+        ${tt ? `<div class="line"><span>${pl(tt, 'child', 'children')} under 6 · no SDF</span><b>${m(0)}</b></div>` : ''}
+        <div class="line"><span>${R.visa ? `Visa · ${ad + kd + tt} × ${m(R.visa)} (one-off)` : 'Visa fee'}</span><b>${R.visa ? m(visa) : 'None'}</b></div>
+        <div class="grand"><span>Government fees</span><b>${m(tot)}</b></div>`;
+    }
+    f.addEventListener('input', calc);
+    f.addEventListener('submit', (e) => e.preventDefault());
+    // Itinerary pages and buttons can set the nights: <button data-set-nights="8">
+    document.querySelectorAll<HTMLElement>('[data-set-nights]').forEach((b) => b.addEventListener('click', () => { el<HTMLInputElement>('nights').value = b.dataset.setNights!; calc(); }));
+    calc();
+  });
+</script>
