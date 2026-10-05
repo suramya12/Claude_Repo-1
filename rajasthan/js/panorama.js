@@ -22,7 +22,8 @@
   }
   function noise1(seed) {
     const r = U.rng(seed), v = Array.from({ length: 720 }, () => r() * 2 - 1);
-    return (b, f) => { const x = (((b * f) % 720) + 720) % 720, i = Math.floor(x), t = x - i, u = t * t * (3 - 2 * t); return v[i] + (v[(i + 1) % 720] - v[i]) * u; };
+    // f = noise cycles per 10° of bearing; wraps cleanly every 360°
+    return (b, f) => { const x = ((((b / 10) * f) % (36 * f)) + 36 * f) % (36 * f), i = Math.floor(x), t = x - i, u = t * t * (3 - 2 * t), n = 36 * f; return v[i % 720] + (v[(i + 1) % n % 720] - v[i % 720]) * u; };
   }
 
   // Simple landmark silhouettes, drawn upward from (x, y) at scale s.
@@ -32,6 +33,7 @@
     temple(g, x, y, s) { g.beginPath(); g.moveTo(x - 22 * s, y); g.lineTo(x - 18 * s, y - 10 * s); g.lineTo(x - 8 * s, y - 10 * s); g.quadraticCurveTo(x - 6 * s, y - 30 * s, x, y - 36 * s); g.quadraticCurveTo(x + 6 * s, y - 30 * s, x + 8 * s, y - 10 * s); g.lineTo(x + 18 * s, y - 10 * s); g.lineTo(x + 22 * s, y); g.fill(); },
     tower(g, x, y, s) { g.beginPath(); g.moveTo(x - 6 * s, y); g.lineTo(x - 4.5 * s, y - 34 * s); g.lineTo(x + 4.5 * s, y - 34 * s); g.lineTo(x + 6 * s, y); g.fill(); g.beginPath(); g.arc(x, y - 34 * s, 5 * s, Math.PI, 0); g.fill(); },
     lake(g, x, y, s, glint) { g.save(); g.fillStyle = glint; g.beginPath(); g.ellipse(x, y + 2 * s, 30 * s, 3 * s, 0, 0, 7); g.fill(); g.restore(); },
+    khejri(g, x, y, s) { g.beginPath(); g.moveTo(x - 1.6 * s, y); g.lineTo(x - 0.9 * s, y - 16 * s); g.lineTo(x - 7 * s, y - 22 * s); g.lineTo(x - 0.4 * s, y - 19 * s); g.lineTo(x + 0.6 * s, y - 24 * s); g.lineTo(x + 6 * s, y - 21 * s); g.lineTo(x + 1.2 * s, y - 16 * s); g.lineTo(x + 1.8 * s, y); g.fill(); g.beginPath(); g.ellipse(x, y - 26 * s, 16 * s, 6 * s, 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(x - 8 * s, y - 24 * s, 9 * s, 4 * s, 0, 0, 7); g.ellipse(x + 9 * s, y - 24.5 * s, 9 * s, 4 * s, 0, 0, 7); g.fill(); },
     tree(g, x, y, s) { g.fillRect(x - 0.8 * s, y - 12 * s, 1.6 * s, 12 * s); g.beginPath(); g.ellipse(x, y - 14 * s, 9 * s, 5 * s, 0, 0, 7); g.fill(); },
     dome(g, x, y, s) { g.beginPath(); g.rect(x - 14 * s, y - 8 * s, 28 * s, 8 * s); g.fill(); g.beginPath(); g.arc(x, y - 8 * s, 10 * s, Math.PI, 0); g.fill(); g.fillRect(x - 0.6 * s, y - 22 * s, 1.2 * s, 5 * s); },
     marsh(g, x, y, s) { for (let i = -3; i <= 3; i++) { g.fillRect(x + i * 6 * s, y - (5 + (i % 2 ? 3 : 0)) * s, 1 * s, (5 + (i % 2 ? 3 : 0)) * s); } },
@@ -74,7 +76,9 @@
     function terrainY(L, b) { return hy + L.base * H - (L.f(b) + L.n(b, L.freq || 2) * (L.rough || 0.05)) * L.amp * H; }
 
     // ---------- hotspots ----------
-    const kids = node.children.map((id) => ctx.get(id)).filter((n) => n.band);
+    // Children of the panorama, plus the wonders inside the ring, which also sit on the horizon at their bearing.
+    const kidIds = [...node.children, ...node.children.flatMap((c) => (ctx.get(c).archetype === 'ring' ? ctx.get(c).children : []))];
+    const kids = kidIds.map((id) => ctx.get(id)).filter((n) => n.band);
     const maxDist = Math.max(...kids.filter((k) => k.distance).map((k) => k.distance), 1);
     const sorted = kids.slice().sort((a, b) => (a.bearing ?? 0) - (b.bearing ?? 0));
     const items = sorted.map((k) => {
@@ -98,8 +102,8 @@
     // vertical placement per band
     function anchor(it) {
       const k = it.k;
-      if (it.kind === 'theme') return hy - (k.alt ?? 30) * ppd * 0.9 * (H / W > 1 ? 0.75 : 1);
-      if (it.kind === 'tool') return Math.min(H - 120, hy + H * (k.drop ?? 0.24));
+      if (it.kind === 'theme') return H * (0.24 + ((36 - (k.alt ?? 30)) / 12) * 0.16);
+      if (it.kind === 'tool') return Math.min(H - 150, hy + H * (0.14 + ((k.drop ?? 0.25) - 0.24) * 1.2));
       const dn = (k.distance || 0) / maxDist;
       return it.kind === 'region' ? hy + 58 - dn * 34 : hy - 6 - dn * 26;
     }
@@ -213,8 +217,9 @@
       gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(6,4,3,0.92)');
       g.fillStyle = gr; g.fillRect(0, hy, W, H - hy);
       // khejri trees in the foreground, fixed in the world
-      g.fillStyle = '#070504';
-      for (const fb of P.foreground) { const x = xOf(fb[0]); if (x < -60 || x > W + 60) continue; SIL.tree(g, x, hy + H * fb[1], fb[2]); }
+      g.fillStyle = '#060403';
+      const near = layers[layers.length - 1];
+      for (const fb of P.foreground) { const x = xOf(fb[0]); if (x < -80 || x > W + 80) continue; SIL.khejri(g, x, terrainY(near, fb[0]) + 6, fb[2] * (W < 700 ? 0.7 : 1)); }
     }
     function place() {
       // anchors and simple lane-based collision avoidance for labels

@@ -2,7 +2,7 @@
    { destroy, pointFor(childId, current), focusChild(id), focusStart(), arrow(dir), wheel(e), pinch(r, c, end), pause, resume, resize } */
 (function () {
   'use strict';
-  const { h, svg } = U;
+  const { h, svg, fill, add } = U;
   const ARCH = (window.ARCH = window.ARCH || {});
 
   // ---------- shared pieces ----------
@@ -39,7 +39,7 @@
   // ---------- fallback ----------
   ARCH.fallback = function (node, el, ctx) {
     const { wrap, h1 } = head(node, ctx);
-    el.append(U.fallback(node.native, node.coords), h('div.vignette'), wrap);
+    add(el, U.fallback(node.native, node.coords), h('div.vignette'), wrap);
     return { focusStart: () => focusEl(h1) };
   };
 
@@ -131,7 +131,7 @@
     const kids = node.children.map(ctx.get);
     const n = kids.length;
     const { wrap, h1 } = head(node, ctx);
-    const ringEl = h('div.ring');
+    const ringEl = h('div.ring3d');
     const portals = kids.map((k, i) => {
       const img = U.img(k.photo, k.alt, { sizes: '320px', fx: k.fx, fy: k.fy, native: k.native, coords: k.coords }) || U.fallback(k.native, k.coords);
       const p = h('button.portal', { type: 'button', 'data-go': k.id, 'aria-label': `${U.roman(i + 1)}. ${k.title}: ${k.kind}. ${k.teaser || ''}`, onfocus: () => { rotateTo(i); ctx.preload(k.id); } },
@@ -145,8 +145,9 @@
     let angle = 0, targetA = 0, raf = 0, idx = 0, R = 420, pw = 300;
     function size() {
       const W = el.clientWidth || innerWidth, H = el.clientHeight || innerHeight;
-      pw = U.clamp(Math.min(W * 0.24, H * 0.36), 170, 300); R = Math.max(pw * 1.25, (pw * 1.15) / (2 * Math.tan(Math.PI / n)));
-      ringEl.style.setProperty('--pw', pw + 'px'); ringEl.style.top = W < 760 ? '52%' : '56%';
+      const tablet = W >= 760 && W <= 1100;
+      pw = U.clamp(Math.min(W * 0.24, H * (tablet ? 0.3 : 0.36)), 170, 300); R = Math.max(pw * 1.25, (pw * 1.15) / (2 * Math.tan(Math.PI / n)));
+      ringEl.style.setProperty('--pw', pw + 'px'); ringEl.style.top = W < 760 ? '52%' : tablet ? '62%' : '56%';
       portals.forEach((p) => p.style.setProperty('--pw', pw + 'px'));
     }
     function render() {
@@ -182,6 +183,42 @@
     };
   };
 
+  // Greedy label placement around anchored dots (.hs.anch): try below, above,
+  // right and left of each dot and keep the first spot that hits no dot, no
+  // other label and no panel. Items carry _x/_y in scene layout pixels.
+  function layoutBox(n, root) { let l = 0, t = 0, m = n; while (m && m !== root) { l += m.offsetLeft; t += m.offsetTop; m = m.offsetParent; } return { l, t, r: l + n.offsetWidth, b: t + n.offsetHeight }; }
+  function placeLabels(root, items, panels, W) {
+    // layout boxes, not client rects: the scene may be mid-zoom (scaled)
+    const blocks = panels.filter((n) => n && !n.hidden).map((n) => layoutBox(n, root)).filter((r) => r.r > r.l);
+    const dots = items.map((b2) => ({ l: b2._x - 10, t: b2._y - 10, r: b2._x + 10, b: b2._y + 10 }));
+    const taken = [];
+    const hit = (a, z) => Math.max(0, Math.min(a.r, z.r) - Math.max(a.l, z.l)) * Math.max(0, Math.min(a.b, z.b) - Math.max(a.t, z.t));
+    const minX = 8, maxX = W - (W < 760 ? 30 : 56);
+    for (const b2 of items.slice().sort((a, z) => a._y - z._y)) {
+      const lb = b2.querySelector('.lbl'); const w = lb.offsetWidth, hh = lb.offsetHeight, x = b2._x, y = b2._y;
+      // centred labels may slide sideways (up to the dot) to stay on screen
+      const slide = U.clamp(Math.max(0, minX - (x - w / 2)) - Math.max(0, x + w / 2 - maxX), -w / 2 + 6, w / 2 - 6);
+      const opts = { b: { l: x - w / 2 + slide, t: y + 12, r: x + w / 2 + slide, b: y + 12 + hh, dx: slide }, t: { l: x - w / 2 + slide, t: y - 12 - hh, r: x + w / 2 + slide, b: y - 12, dx: slide }, r: { l: x + 14, t: y - hh / 2, r: x + 14 + w, b: y + hh / 2 }, l: { l: x - 14 - w, t: y - hh / 2, r: x - 14, b: y + hh / 2 },
+        tr: { l: x + 8, t: y - 8 - hh, r: x + 8 + w, b: y - 8 }, br: { l: x + 8, t: y + 8, r: x + 8 + w, b: y + 8 + hh }, tl: { l: x - 8 - w, t: y - 8 - hh, r: x - 8, b: y - 8 }, bl: { l: x - 8 - w, t: y + 8, r: x - 8, b: y + 8 + hh } };
+      let best = 'b', bestCost = Infinity, bestClash = 0;
+      for (const [m, R] of Object.entries(opts)) {
+        let cost = 0, clash = 0;
+        for (const d of dots) cost += hit(R, d) * 3;
+        for (const z of taken) clash += hit(R, z);
+        cost += clash * 2;
+        for (const z of blocks) cost += hit(R, z);
+        if (R.l < minX || R.r > maxX) cost += 5000 + 50 * Math.max(minX - R.l, R.r - maxX);
+        if (cost < bestCost) { best = m; bestCost = cost; bestClash = clash; }
+        if (cost === 0) break;
+      }
+      // a label that would still sit on another label is shown only on hover or focus (zoom in to separate them)
+      const tuck = bestClash > w * hh * 0.25;
+      b2.dataset.lbl = best; b2.classList.toggle('tucked', tuck);
+      if (!tuck) taken.push(opts[best]);
+      lb.style.setProperty('--dx', (opts[best].dx || 0) + 'px');
+    }
+  }
+
   // ---------- MAP ----------
   ARCH.map = function (node, ctx_el, ctx) { return mapScene(node, ctx_el, ctx); };
   function mapScene(node, el, ctx) {
@@ -194,6 +231,7 @@
     const gWorld = svg('g');
     svgEl.append(svg('defs', null, svg('filter', { id: 'blob-' + node.id, x: '-50%', y: '-50%', width: '200%', height: '200%' }, svg('feGaussianBlur', { stdDeviation: 18 }))), gWorld);
     const layerPins = h('div.layer-pins');
+    const leaders = svg('svg', { class: 'leaders', 'aria-hidden': 'true' });
     const cats = [...new Set(pins.map((p) => p.cat).filter(Boolean))];
     const active = new Set(cats);
     const filters = cats.length > 1 ? h('div.filters', { 'data-inert': '', role: 'group', 'aria-label': 'Filter places' }, cats.map((c) => {
@@ -204,9 +242,9 @@
     function syncChips() { filters && [...filters.children].forEach((b) => b.setAttribute('aria-pressed', String(active.has(b.textContent)))); }
     const legend = node.legend ? h('div.legend', { 'data-inert': '' }, node.legend.map((t) => h('p.mono-label', { text: t }))) : null;
     const scale = h('div.scalebar.mono-label', { 'data-inert': '' }, h('i'), h('span'));
-    el.append(svgEl, h('div.vignette'), layerPins, wrap, filters, legend, scale);
-    if (node.note) wrap.append(h('p.mono-label.dim', { style: { marginTop: '12px' }, text: node.note }));
-    if (node.children.some((c) => !ctx.get(c).coords)) wrap.append(h('div.head-actions', null, enterButtons({ children: node.children.filter((c) => !ctx.get(c).coords) }, ctx)));
+    add(el, svgEl, h('div.vignette'), layerPins, wrap, filters, legend, scale);
+    if (node.note) add(wrap, h('p.mono-label.dim', { style: { marginTop: '12px' }, text: node.note }));
+    if (node.children.some((c) => !ctx.get(c).coords)) add(wrap, h('div.head-actions', null, enterButtons({ children: node.children.filter((c) => !ctx.get(c).coords) }, ctx)));
 
     // projection: d3 Mercator when available, else equirectangular
     let W, H, proj, k = 1, tx = 0, ty = 0, minK = 1;
@@ -215,8 +253,11 @@
     function setup() {
       W = el.clientWidth || innerWidth; H = el.clientHeight || innerHeight;
       const mobile = W < 760;
-      const box = mobile ? [[16, 150], [W - 16, H - 150]] : [[W * 0.36, 90], [W - 90, H - 110]];
-      const feat = { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[[b[0][0], b[0][1]], [b[1][0], b[0][1]], [b[1][0], b[1][1]], [b[0][0], b[1][1]], [b[0][0], b[0][1]]]] } };
+      const box = mobile ? [[24, Math.min(H * 0.5, layoutBox(wrap, el).b + 36)], [W - 34, (filters ? layoutBox(filters, el).t : H - 70) - 44]] : [[W * 0.36, 90], [W - 90, H - 110]];
+      // MultiPoint, not a polygon: d3 reads polygon winding on the sphere, a box could mean "everything but the box"
+      const feat = { type: 'Feature', geometry: { type: 'MultiPoint', coordinates: [[b[0][0], b[0][1]], [b[1][0], b[1][1]]] } };
+      if (mobile) Object.assign(scale.style, { top: Math.max(0, box[0][1] - 30) + 'px', bottom: 'auto', left: 'auto', right: '30px', transform: 'none' });
+      else ['top', 'bottom', 'left', 'right', 'transform'].forEach((k) => scale.style.removeProperty(k));
       if (d3) proj = d3.geoMercator().fitExtent(box, feat);
       else {
         const lat0 = (b[0][1] + b[1][1]) / 2, c = Math.cos(lat0 * U.RAD);
@@ -256,24 +297,47 @@
         const [x, y] = P(L.at); gWorld.append(svg('text', { class: L.kind === 'river' ? 'river-label' : L.kind === 'aravalli' ? 'aravalli-label' : 'neigh-label', x, y, 'text-anchor': 'middle' }, L.text));
       }
       // pins
-      layerPins.replaceChildren();
+      layerPins.replaceChildren(leaders);
       for (const p of all) {
         const jump = !pins.includes(p);
-        const btn = h(`button.hs${jump ? '.jump' : ''}`, { type: 'button', 'data-go': p.id, 'data-cat': p.cat || '', 'aria-label': `${p.title}${jump ? ' (one of the seven wonders)' : ''}. ${p.teaser || ''}`, onmouseenter: () => ctx.preload(p.id), onfocus: () => ctx.preload(p.id) },
+        const btn = h(`button.hs.anch${jump ? '.jump' : ''}`, { type: 'button', 'data-go': p.id, 'data-cat': p.cat || '', 'aria-label': `${p.title}${jump ? ' (one of the seven wonders)' : ''}. ${p.teaser || ''}`, onmouseenter: () => ctx.preload(p.id), onfocus: () => ctx.preload(p.id) },
           h('span.dot', { 'aria-hidden': 'true' }), h('span.lbl', { 'aria-hidden': 'true', text: (jump ? '◆ ' : '') + p.title }),
           h('span.teaser', { 'aria-hidden': 'true', text: p.teaser || '' }));
         btn._p = p; layerPins.append(btn);
       }
       place();
       scaleBar();
+      if (!el.isConnected) requestAnimationFrame(() => el.isConnected && setup());
     }
     function place() {
-      for (const btn of layerPins.children) {
+      const shown = [];
+      for (const btn of layerPins.querySelectorAll('.hs')) {
         const [x, y] = P(btn._p.coords);
-        btn.style.left = (x * k + tx) + 'px'; btn.style.top = (y * k + ty) + 'px';
+        btn._x = x * k + tx; btn._y = y * k + ty;
         btn.hidden = btn.dataset.cat && !active.has(btn.dataset.cat) && !btn.classList.contains('jump');
+        if (!btn.hidden) shown.push(btn);
       }
       gWorld.setAttribute('transform', `translate(${tx},${ty}) scale(${k})`);
+      // Places closer than a dot's width fan out around their centre, with a leader line back to it.
+      leaders.replaceChildren();
+      const seen = new Set();
+      for (const a of shown) {
+        if (seen.has(a)) continue;
+        const group = [a]; seen.add(a);
+        for (let gi = 0; gi < group.length; gi++) for (const z of shown) if (!seen.has(z) && Math.hypot(z._x - group[gi]._x, z._y - group[gi]._y) < 20) { group.push(z); seen.add(z); }
+        if (group.length < 2) continue;
+        const cx = group.reduce((t, z) => t + z._x, 0) / group.length, cy = group.reduce((t, z) => t + z._y, 0) / group.length;
+        const r = Math.max(18, group.length * 9);
+        group.sort((m, n) => Math.atan2(m._y - cy, m._x - cx) - Math.atan2(n._y - cy, n._x - cx));
+        group.forEach((z, gi) => {
+          const ang = -Math.PI / 2 + (gi * 2 * Math.PI) / group.length;
+          z._x = cx + r * Math.cos(ang); z._y = cy + r * Math.sin(ang);
+          leaders.append(svg('line', { x1: cx, y1: cy, x2: z._x, y2: z._y }));
+        });
+        leaders.append(svg('circle', { cx, cy, r: 2.5 }));
+      }
+      for (const btn of shown) { btn.style.left = btn._x + 'px'; btn.style.top = btn._y + 'px'; }
+      placeLabels(el, shown, [wrap, filters, legend], W);
     }
     function scaleBar() {
       // a round distance that is about 120 px long at the current zoom
@@ -297,8 +361,8 @@
       destroy() { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', upd); },
       resize() { k = 1; tx = ty = 0; setup(); },
       focusStart: () => focusEl(h1),
-      focusChild(id) { const b2 = [...layerPins.children].find((x) => x.dataset.go === id); focusEl(b2); pulse(b2); },
-      pointFor(id) { const b2 = [...layerPins.children].find((x) => x.dataset.go === id); if (!b2) return null; const r = b2.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; },
+      focusChild(id) { const b2 = layerPins.querySelector(`[data-go="${id}"]`); focusEl(b2); pulse(b2); },
+      pointFor(id) { const b2 = layerPins.querySelector(`[data-go="${id}"]`); if (!b2) return null; const r = b2.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; },
       wheel(e) {
         if (e.deltaY < 0) return zoomAt(1.18, e.clientX, e.clientY) || true;
         if (k > minK + 0.001) { zoomAt(1 / 1.18, e.clientX, e.clientY); if (k <= minK + 0.001) { k = minK; tx = ty = 0; place(); scaleBar(); } return true; }
@@ -327,7 +391,7 @@
     const extra = h('div.head-actions', null, heart(node, ctx), enterButtons(node, ctx));
     const { wrap, h1 } = head(node, ctx, { extra });
     const panel = placePanel(node, ctx);
-    el.append(stageEl, h('div.vignette'), wrap, panel.el, U.credit(node.photo, node.photoNote));
+    add(el, stageEl, h('div.vignette'), wrap, panel.el, U.credit(node.photo, node.photoNote));
     // hotspots on the photo
     const pinEls = [];
     (node.spots || []).forEach((s, i) => {
@@ -347,10 +411,19 @@
       if (img && pdata) {
         const r = cover(pdata.w, pdata.h, W, mobile ? H * 0.6 : H, fx, fy);
         Object.assign(img.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
-        pinEls.forEach((p) => { const x = r.x + (p.s.x / 100) * r.w, y = r.y + (p.s.y / 100) * r.h; p.el.style.left = x + 'px'; p.el.style.top = y + 'px'; p.el.style.display = x < 10 || x > W - 10 || y < 60 || y > H - 20 ? 'none' : ''; p.el.classList.toggle('flip', y > H * 0.6); });
+        // layout boxes (not transformed rects) of the overlays a pin must not sit under
+        const box = (n) => n && n.offsetParent !== null ? { l: n.offsetLeft, t: n.offsetTop, r: n.offsetLeft + n.offsetWidth, b: n.offsetTop + n.offsetHeight } : null;
+        const blocks = [box(wrap), box(panel.el), box(el.querySelector('.credit'))].filter(Boolean);
+        pinEls.forEach((p) => {
+          const x = r.x + (p.s.x / 100) * r.w, y = r.y + (p.s.y / 100) * r.h;
+          p.el.style.left = x + 'px'; p.el.style.top = y + 'px';
+          const under = blocks.some((b) => x > b.l - 16 && x < b.r + 16 && y > b.t - 16 && y < b.b + 16);
+          p.el.style.display = x < 10 || x > W - 10 || y < 60 || y > H - 20 || under ? 'none' : '';
+          p.el.classList.toggle('flip', y > H * 0.6);
+        });
       } else pinEls.forEach((p) => (p.el.style.display = 'none'));
     }
-    layout();
+    layout(); requestAnimationFrame(layout);
     return {
       resize: layout,
       focusStart: () => focusEl(h1),
@@ -441,9 +514,9 @@
       roomEls.forEach((r, j) => r.classList.toggle('on', j === cur));
       planBtns.forEach((b, j) => b.setAttribute('aria-current', String(j === cur)));
       const r = rooms[cur];
-      text.replaceChildren(h('p.mono-label', { text: `Room ${cur + 1} of ${rooms.length}${r.where ? ' · ' + r.where : ''}` }), h('h2.title', { text: r.name }), ...r.text.map((t) => h('p', { text: t })),
+      fill(text, h('p.mono-label', { text: `Room ${cur + 1} of ${rooms.length}${r.where ? ' · ' + r.where : ''}` }), h('h2.title', { text: r.name }), ...r.text.map((t) => h('p', { text: t })),
         r.go ? h('div.head-actions', null, h('button.btn', { type: 'button', 'data-go': r.go, text: `Enter · ${ctx.get(r.go).title}` })) : null);
-      credit.replaceChildren(U.credit(r.photo) || '');
+      fill(credit, U.credit(r.photo));
     }
     show(cur);
     return {
@@ -463,24 +536,33 @@
     const pins = h('div', { style: { position: 'absolute', inset: '0' } }); frame.append(pins);
     const list = h('div.cu-list', { 'data-inert': '', role: 'list' });
     const { wrap, h1 } = head(node, ctx, { extra: h('div.head-actions', null, node.noHeart ? null : heart(node, ctx), enterButtons(node, ctx)) });
-    el.append(h('div.scene-bg', { 'data-empty': '' }), h('div.cu-img', { 'data-empty': '' }, frame), h('div.vignette'), wrap, list, U.credit(node.photo));
+    add(el, h('div.scene-bg', { 'data-empty': '' }), h('div.cu-img', { 'data-empty': '' }, frame), h('div.vignette'), wrap, list, U.credit(node.photo));
     let sel = -1;
     const items = node.notes.map((n, i) => {
-      const pin = h('div.pin-spot', { 'data-inert': '' }, h('button', { type: 'button', 'aria-label': `${i + 1}. ${n.title}`, onclick: () => choose(i) }, h('i', { text: String(i + 1) })));
-      pin.style.left = n.x + '%'; pin.style.top = n.y + '%'; pins.append(pin);
-      const li = h('button', { type: 'button', role: 'listitem', 'aria-pressed': 'false', onclick: () => choose(i) }, h('i', { text: String(i + 1), 'aria-hidden': 'true' }), h('div', null, h('b', { text: n.title }), h('span', { text: n.text })));
+      // Notes without a position are list-only (e.g. "Also try" dishes).
+      const placed = n.x != null && n.y != null && !!img;
+      let pin = null;
+      if (placed) {
+        pin = h('div.pin-spot', { 'data-inert': '' }, h('button', { type: 'button', 'aria-label': `${i + 1}. ${n.title}`, onclick: () => choose(i) }, h('i', { text: String(i + 1) })));
+        pin.style.left = n.x + '%'; pin.style.top = n.y + '%'; pins.append(pin);
+      }
+      const li = h('button', { type: 'button', role: 'listitem', 'aria-pressed': 'false', class: placed ? null : 'plain', onclick: () => choose(i) }, h('i', { text: placed ? String(i + 1) : '·', 'aria-hidden': 'true' }), h('div', null, h('b', { text: n.title }), h('span', { text: n.text })));
       list.append(li); return { pin, li };
     });
-    function choose(i) { sel = i; items.forEach((it, j) => { it.li.setAttribute('aria-pressed', String(j === i)); it.pin.classList.toggle('pulse', j === i); }); }
+    function choose(i) { sel = i; items.forEach((it, j) => { it.li.setAttribute('aria-pressed', String(j === i)); if (it.pin) it.pin.classList.toggle('pulse', j === i); }); }
     function size() {
       if (!img || !pd) return;
-      const ratio = pd.w / pd.h; const box = frame.parentElement.getBoundingClientRect();
+      const ratio = pd.w / pd.h; const box = frame.parentElement;
       const mobile = innerWidth < 760;
-      const maxW = mobile ? innerWidth * 0.92 : innerWidth * 0.56, maxH = box.height * 0.92 || innerHeight * 0.7;
+      if (mobile) { box.style.paddingTop = (layoutBox(wrap, el).b + 10) + 'px'; box.style.paddingBottom = ((el.clientHeight || innerHeight) - layoutBox(list, el).t + 10) + 'px'; }
+      else { box.style.paddingTop = ''; box.style.paddingBottom = ''; }
+      const cs = getComputedStyle(box);
+      const avail = (box.clientHeight || innerHeight) - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const maxW = mobile ? innerWidth * 0.92 : Math.max(240, box.clientWidth * 0.94), maxH = avail * 0.94;
       let w = maxW, hh = w / ratio; if (hh > maxH) { hh = maxH; w = hh * ratio; }
       Object.assign(frame.style, { width: w + 'px', height: hh + 'px', maxWidth: 'none' }); img.style.width = '100%'; img.style.height = '100%';
     }
-    requestAnimationFrame(size);
+    size(); requestAnimationFrame(size);
     return {
       resize: size, focusStart: () => focusEl(h1),
       focusChild(id) { const b = el.querySelector(`[data-go="${id}"]`); focusEl(b); pulse(b); },
@@ -571,7 +653,7 @@
       g.addEventListener('click', () => choose(i)); g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(i); } });
       sv.append(g); festBtns.push(g);
     });
-    const key = h('div.season-key', null, Object.values(SEASON).map(([c, t]) => h('span', null, h('i', { style: { background: c } }), t)));
+    const key = h('div.season-key', null, Object.values(SEASON).map(([c, t]) => { const [a, b] = t.split(':'); return h('span', null, h('i', { style: { background: c } }), h('b', { text: a }), b ? h('em', { text: ':' + b }) : null); }));
     wrap.append(key);
     el.append(h('div.scene-bg', { 'data-empty': '' }), sv, h('div.vignette'), wrap, card);
     function fmt(f) {
@@ -584,7 +666,7 @@
       festBtns.forEach((g, j) => g.classList.toggle('sel', j === i));
       const days = Math.ceil((f.s - new Date()) / 86400000);
       const im = f.photo ? U.img(f.photo, f.alt) : null;
-      card.replaceChildren(
+      fill(card,
         im ? h('div.dc-img', null, im) : null,
         h('p.countdown', { text: days > 0 ? `In ${days} day${days === 1 ? '' : 's'}` : 'On now' }),
         h('h2.title', { text: f.name }),
@@ -594,10 +676,19 @@
         f.photo ? U.credit(f.photo) : null);
       if (card.querySelector('.credit')) Object.assign(card.querySelector('.credit').style, { position: 'static', textAlign: 'left', maxWidth: 'none', marginTop: '8px' });
     }
+    function layout() {
+      const W = el.clientWidth || innerWidth, H = el.clientHeight || innerHeight;
+      if (W >= 760) { sv.style.removeProperty('width'); sv.style.removeProperty('height'); sv.style.removeProperty('top'); return; }
+      const top = layoutBox(wrap, el).b + 14, bottom = layoutBox(card, el).t - 12;
+      const size = Math.max(150, Math.min(W * 0.9, bottom - top));
+      Object.assign(sv.style, { width: size + 'px', height: size + 'px', top: (top + Math.max(size, bottom - top) / 2) + 'px' });
+    }
     const nextI = fests.findIndex((f) => f.e >= new Date());
     if (fests[nextI]) centerN.textContent = fests[nextI].name.length > 18 ? fests[nextI].name.split(' ')[0] : fests[nextI].name;
     choose(Math.max(0, nextI));
+    layout(); requestAnimationFrame(layout);
     return {
+      resize: layout,
       focusStart: () => focusEl(h1),
       arrow(dir) { const j = sel + dir; if (j < 0 || j >= fests.length) return false; choose(j); focusEl(festBtns[j]); return true; },
     };
@@ -660,7 +751,8 @@
     const canvas = el.querySelector('canvas'); const g = canvas.getContext('2d');
     const stars = SKY.stars(500, 33);
     const btns = node.stars.map((s, i) => {
-      const b = h('button.hs.theme', { type: 'button', 'aria-label': `${s.name}: ${s.group}`, 'aria-haspopup': 'dialog', onclick: () => open(i) }, h('span.dot', { 'aria-hidden': 'true' }), h('span.lbl', { text: s.name, 'aria-hidden': 'true' }));
+      const lbl = s.num ? h('span.lbl.two', { 'aria-hidden': 'true' }, h('b', { text: s.num }), h('span', { text: s.label })) : h('span.lbl', { text: s.name, 'aria-hidden': 'true' });
+      const b = h('button.hs.theme.anch', { type: 'button', 'aria-label': `${s.name}: ${s.group}`, 'aria-haspopup': 'dialog', onclick: () => open(i) }, h('span.dot', { 'aria-hidden': 'true' }), lbl);
       b.style.pointerEvents = 'auto'; layer.append(b); return b;
     });
     let W, H, sel = -1;
@@ -670,11 +762,13 @@
       const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#05060c'); gr.addColorStop(1, '#120c0a'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
       for (const s of stars) { g.fillStyle = `rgba(255,246,228,${0.15 + 0.6 * s.m})`; g.fillRect((s.b / 360) * W, (s.a / 82) * H, s.m > 0.95 ? 2 : 1, s.m > 0.95 ? 2 : 1); }
       const mobile = W < 760;
-      const pos = (s) => [mobile ? 0.08 * W + s.mx * 0.84 * W : 0.34 * W + s.x * 0.6 * W, mobile ? 0.3 * H + s.my * 0.6 * H : 0.16 * H + s.y * 0.72 * H];
+      const top = mobile ? Math.min(H * 0.45, layoutBox(wrap, el).b + 56) : 0;
+      const pos = (s) => [mobile ? 0.12 * W + (s.mx ?? s.x) * 0.72 * W : 0.36 * W + s.x * 0.56 * W, mobile ? top + (s.my ?? s.y) * (H - 110 - top) : 0.2 * H + s.y * 0.66 * H];
       sv.replaceChildren();
       for (const [a, b] of node.links) { const A = pos(node.stars[a]), B = pos(node.stars[b]); sv.append(svg('line', { class: 'link', x1: A[0], y1: A[1], x2: B[0], y2: B[1] })); }
       for (const grp of node.groups) { const ss = node.stars.filter((s) => s.group === grp.name).map(pos); const cx = ss.reduce((a, p) => a + p[0], 0) / ss.length, top = Math.min(...ss.map((p) => p[1])); sv.append(svg('text', { class: 'group-label', x: cx, y: top - 34, 'text-anchor': 'middle' }, grp.name)); }
-      node.stars.forEach((s, i) => { const [x, y] = pos(s); btns[i].style.left = x + 'px'; btns[i].style.top = y + 'px'; btns[i]._xy = [x, y]; });
+      node.stars.forEach((s, i) => { const [x, y] = pos(s); btns[i].style.left = x + 'px'; btns[i].style.top = y + 'px'; btns[i]._xy = [x, y]; btns[i]._x = x; btns[i]._y = y; });
+      if (el.isConnected) placeLabels(el, btns, [wrap], W); else requestAnimationFrame(() => el.isConnected && layout());
       if (sel >= 0) placeCard();
     }
     function placeCard() {
@@ -687,7 +781,7 @@
       btns.forEach((b, j) => b.classList.toggle('pulse', j === i));
       const close = h('button.hbtn.close', { type: 'button', 'aria-label': 'Close', onclick: () => { card.hidden = true; btns[i].classList.remove('pulse'); focusEl(btns[i]); } }, svg('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true' }, svg('path', { d: 'M6 6l12 12M18 6 6 18' })));
       const im = s.photo ? U.img(s.photo, s.alt) : null;
-      card.replaceChildren(close, im ? h('div.cc-img', null, im) : null, h('div.cc-body', null,
+      fill(card, close, im ? h('div.cc-img', null, im) : null, h('div.cc-body', null,
         h('p.mono-label', { text: s.group }), h('h2.title', { id: `cc-${node.id}`, text: s.name }), ...s.text.map((t) => h('p', { text: t })),
         s.where ? h('p.mono-label', { text: `Where: ${s.whereText || ctx.get(s.where).title}` }) : null,
         s.where ? h('button.btn.ghost.small', { type: 'button', onclick: () => ctx.go(s.where), text: `Go to ${ctx.get(s.where).title}` }) : null,
@@ -712,36 +806,50 @@
     el.append(h('div.scene-bg', { 'data-empty': '' }), sv, h('div.vignette'), wrap, ctl, desc);
     function draw() {
       const W = el.clientWidth || innerWidth, H = el.clientHeight || innerHeight;
-      const top = H * 0.3, bottom = H - 120, ph = Math.max(140, bottom - top);
-      sv.setAttribute('viewBox', `0 0 ${W} ${ph}`); sv.style.height = ph + 'px';
-      const x0 = W < 760 ? 18 : 60, x1 = W - (W < 760 ? 18 : 90), km = pf.stops[pf.stops.length - 1].km;
+      const mobile = W < 760;
+      const top = mobile ? Math.min(H * 0.5, layoutBox(wrap, el).b + 30) : H * 0.42, bottom = H - (mobile ? 120 : 110), ph = Math.max(140, bottom - top);
+      sv.setAttribute('viewBox', `0 0 ${W} ${ph}`); sv.style.height = ph + 'px'; sv.style.top = top + 'px';
+      const x0 = W < 760 ? 18 : 60, x1 = W - (W < 760 ? 36 : 90), km = pf.stops[pf.stops.length - 1].km;
       const kmPx = (x1 - x0) / km;
       const maxE = 1800; const base = ph - 34;
-      const vScale = ex === 1 ? kmPx / 1000 : Math.min((base - 40) / maxE, (kmPx / 1000) * ex);
+      // the stretched view fills the height; the button states the factor that results
+      const fit = Math.max(10, Math.floor(((base - 40) / maxE) / (kmPx / 1000) / 10) * 10);
+      const vScale = ex === 1 ? kmPx / 1000 : (kmPx / 1000) * Math.min(fit, mobile ? 300 : pf.exaggeration);
+      ctl.firstChild.textContent = `Stretched ×${Math.min(fit, mobile ? 300 : pf.exaggeration)}`;
       const X = (k) => x0 + k * kmPx, Y = (m) => base - m * vScale;
       sv.replaceChildren(svg('defs', null, svg('linearGradient', { id: 'pf-grad', x1: 0, y1: 0, x2: 0, y2: 1 }, svg('stop', { offset: 0, 'stop-color': 'rgba(228,138,46,0.5)' }), svg('stop', { offset: 1, 'stop-color': 'rgba(228,138,46,0.02)' }))));
       const pts = pf.terrain.map(([k, m]) => `${X(k).toFixed(1)},${Y(m).toFixed(1)}`);
       sv.append(svg('path', { class: 'terrain', d: `M${X(0)},${base} L${pts.join(' L')} L${X(km)},${base} Z` }));
       const ax = svg('g', { class: 'axis' });
       ax.append(svg('line', { x1: x0, x2: x1, y1: base, y2: base }));
-      [0, 500, 1000, 1500].forEach((m) => { if (Y(m) < 0) return; ax.append(svg('line', { x1: x0, x2: x1, y1: Y(m), y2: Y(m), 'stroke-dasharray': '2 6' }), svg('text', { x: x0, y: Y(m) - 4 }, `${m} m`)); });
+      [0, 500, 1000, 1500].forEach((m) => { if (Y(m) < 0) return; ax.append(svg('line', { x1: x0, x2: x1, y1: Y(m), y2: Y(m), 'stroke-dasharray': '2 6' })); if (m !== 500) ax.append(svg('text', { x: mobile ? x0 : x1, y: Y(m) - 4, 'text-anchor': mobile ? 'start' : 'end' }, `${m} m`)); });
       for (let k = 0; k <= km; k += 100) ax.append(svg('text', { x: X(k), y: base + 16, 'text-anchor': 'middle' }, `${k} km`));
       sv.append(ax);
+      const placed = [];
       pf.stops.forEach((s, i) => {
         const g2 = svg('g', { class: 'stop' }); const x = X(s.km), y = Y(s.elev);
-        const ly = Math.max(14, y - 30 - (i % 2) * 22);
+        // lift each label until it clears the ones already placed
+        const lw = Math.max(s.name.length, 9) * (mobile ? 6.6 : 7.4) + 10;
+        const lx0 = mobile && i === 0 ? x - 4 : mobile && i === pf.stops.length - 1 ? x - lw + 4 : x - lw / 2;
+        let ly = Math.max(24, y - 30);
+        for (let tries = 0; tries < 12 && placed.some((q) => lx0 < q.r && lx0 + lw > q.l && Math.abs(q.y - ly) < 26); tries++) ly -= 26;
+        ly = Math.max(24, ly); placed.push({ l: lx0, r: lx0 + lw, y: ly });
+        const anchor = mobile && i === 0 ? 'start' : mobile && i === pf.stops.length - 1 ? 'end' : 'middle';
+        const tx = anchor === 'start' ? x - 4 : anchor === 'end' ? x + 4 : x;
         g2.append(svg('line', { x1: x, x2: x, y1: y, y2: ly + 4 }), svg('circle', { cx: x, cy: y, r: 3.5 }),
-          svg('text', { x, y: ly - 10, 'text-anchor': 'middle' }, s.name), svg('text', { class: 'sub', x, y: ly + 2, 'text-anchor': 'middle' }, `${s.elev.toLocaleString('en')} m${s.approx ? ' approx.' : ''}`));
+          svg('text', { x: tx, y: ly - 10, 'text-anchor': anchor }, mobile ? s.name.replace(' (Chambal)', '') : s.name), svg('text', { class: 'sub', x: tx, y: ly + 2, 'text-anchor': anchor }, `${s.elev.toLocaleString('en')} m${s.approx ? (mobile ? '~' : ' approx.') : ''}`));
         sv.append(g2);
       });
       // reference: a familiar height for comparison, drawn at the same vertical scale
       pf.refs.forEach((r, i) => {
-        const x = x1 - 24 - i * 34, hpx = r.h * vScale;
-        const g3 = svg('g', { class: 'ref' }); g3.append(svg('rect', { x: x - 6, y: base - hpx, width: 12, height: hpx }), svg('text', { x: x, y: base - hpx - 6, 'text-anchor': 'middle' }, r.name));
+        const x = r.km != null ? X(r.km) : x1 - 24 - i * 34, hpx = r.h * vScale;
+        const g3 = svg('g', { class: 'ref' }); g3.append(svg('rect', { x: x - 6, y: base - hpx, width: 12, height: hpx }));
+        // on phones the label runs up the bar, so the two never collide
+        g3.append(mobile ? svg('text', { x: x + 10, y: base - 4, transform: `rotate(-90 ${x + 10} ${base - 4})` }, r.name) : svg('text', { x: x, y: base - hpx - 6, 'text-anchor': 'middle' }, r.name));
         sv.append(g3);
       });
     }
-    draw();
+    draw(); requestAnimationFrame(draw);
     return { resize: draw, focusStart: () => focusEl(h1) };
   };
 
@@ -760,9 +868,9 @@
     function show(k) {
       if (!items.length) { imgBox.replaceChildren(h('p.empty', { text: 'Photos are on their way.' })); return; }
       i = (k + items.length) % items.length; const it = items[i]; const p = U.photo(it.slot);
-      const im = U.img(it.slot, it.alt || p.alt, { eager: true, sizes: '90vw' }); imgBox.replaceChildren(im);
+      const im = U.img(it.slot, it.alt || p.alt, { eager: true, sizes: '90vw' }); fill(imgBox, im);
       U.preload(items[(i + 1) % items.length].slot);
-      cap.replaceChildren(h('p.lb-count', { text: `${i + 1} / ${items.length}` }), h('p.title', { style: { fontSize: '20px', margin: '4px 0' }, text: it.caption }),
+      fill(cap, h('p.lb-count', { text: `${i + 1} / ${items.length}` }), h('p.title', { style: { fontSize: '20px', margin: '4px 0' }, text: it.caption }),
         U.credit(it.slot) || '', it.go ? h('button.btn.ghost.small', { type: 'button', onclick: () => ctx.go(it.go), text: `Go to ${ctx.get(it.go).title}` }) : null);
       const cr = cap.querySelector('.credit'); if (cr) Object.assign(cr.style, { position: 'static', textAlign: 'center', maxWidth: 'none', margin: '0 0 8px' });
     }

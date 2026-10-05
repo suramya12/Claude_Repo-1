@@ -22,9 +22,10 @@ function simplify(pts, tol) {
   const stack = [[0, pts.length - 1]];
   while (stack.length) {
     const [a, b] = stack.pop(); let max = 0, idx = -1;
-    const [x1, y1] = pts[a], [x2, y2] = pts[b], dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1e-12;
+    const [x1, y1] = pts[a], [x2, y2] = pts[b], dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
     for (let i = a + 1; i < b; i++) {
-      const d = Math.abs(dy * pts[i][0] - dx * pts[i][1] + x2 * y1 - y2 * x1) / len;
+      // closed rings start and end on the same point: fall back to distance from that point
+      const d = len < 1e-12 ? Math.hypot(pts[i][0] - x1, pts[i][1] - y1) : Math.abs(dy * pts[i][0] - dx * pts[i][1] + x2 * y1 - y2 * x1) / len;
       if (d > max) { max = d; idx = i; }
     }
     if (max > tol) { keep[idx] = 1; stack.push([a, idx], [idx, b]); }

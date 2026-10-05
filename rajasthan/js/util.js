@@ -25,6 +25,10 @@
     for (const k of kids.flat()) if (k != null) el.append(k.nodeType ? k : document.createTextNode(String(k)));
     return el;
   };
+  /** replaceChildren that skips null, false and empty strings. */
+  U.fill = (el, ...kids) => el.replaceChildren(...kids.flat().filter((k) => k != null && k !== false && k !== ''));
+  /** append that skips null, false and empty strings. */
+  U.add = (el, ...kids) => el.append(...kids.flat().filter((k) => k != null && k !== false && k !== ''));
   U.esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
   /** localStorage, wrapped: the site must work when storage is blocked. */
