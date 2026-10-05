@@ -1,0 +1,59 @@
+---
+import { NAV, url } from '../lib/site';
+interface Props { overlay?: boolean }
+const { overlay = false } = Astro.props;
+const here = Astro.url.pathname;
+const isOn = (href: string) => here.startsWith(url(href));
+---
+<header class:list={['nav', { overlay }]} id="nav">
+  <div class="nav-in">
+    <a class="brand" href={url('/')}>
+      <b>DRUK YUL<i>.</i></b><span class="tib" lang="dz" aria-hidden="true">འབྲུག་ཡུལ།</span><span class="sr-only">Into Bhutan home</span>
+    </a>
+    <nav aria-label="Main">
+      <ul id="navlist">
+        {NAV.map((n) => <li><a href={url(n.href)} aria-current={isOn(n.href) ? 'page' : undefined}>{n.label}</a></li>)}
+      </ul>
+    </nav>
+    <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="navlist"><span></span><span></span></button>
+  </div>
+</header>
+
+<style>
+  .nav { position: fixed; inset: 0 0 auto 0; z-index: 50; padding-top: env(safe-area-inset-top, 0px); background: rgba(10, 14, 17, 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); transition: background 0.4s, border-color 0.4s; }
+  .nav.overlay:not(.solid) { background: transparent; border-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .nav-in { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: var(--nav-h); padding-inline: var(--gutter); max-width: 1600px; margin-inline: auto; }
+  .brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; position: relative; z-index: 2; }
+  .brand b { font-family: var(--display); font-stretch: 125%; font-weight: 800; letter-spacing: 0.06em; font-size: 15px; }
+  .brand b i { color: var(--saffron); font-style: normal; }
+  .brand .tib { font-size: 15px; color: var(--mist); }
+  ul { display: flex; gap: clamp(14px, 2vw, 32px); list-style: none; margin: 0; padding: 0; }
+  ul a { font-family: var(--display); font-stretch: 112%; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; color: var(--mist); transition: color 0.2s; padding-block: 8px; position: relative; }
+  ul a:hover, ul a[aria-current='page'] { color: var(--snow); }
+  ul a[aria-current='page']::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--saffron); }
+  .burger { display: none; background: none; border: 0; padding: 8px; width: 44px; height: 44px; position: relative; z-index: 2; }
+  .burger span { display: block; height: 2px; background: var(--snow); margin: 5px 0 5px auto; transition: transform 0.3s, width 0.3s; }
+  .burger span:nth-child(1) { width: 22px; }
+  .burger span:nth-child(2) { width: 14px; }
+  @media (max-width: 980px) {
+    ul { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; flex-direction: column; justify-content: center; align-items: center; gap: 22px; background: rgba(10, 14, 17, 0.98); transform: translateY(-100%); visibility: hidden; transition: transform 0.45s cubic-bezier(0.7, 0, 0.2, 1), visibility 0s 0.45s; }
+    ul a { font-size: 22px; }
+    .nav.open ul { transform: none; visibility: visible; transition: transform 0.45s cubic-bezier(0.7, 0, 0.2, 1); }
+    .burger { display: block; }
+    .nav.open .burger span:nth-child(1) { transform: translateY(3.5px) rotate(45deg); }
+    .nav.open .burger span:nth-child(2) { width: 22px; transform: translateY(-3.5px) rotate(-45deg); }
+  }
+</style>
+
+<script>
+  const nav = document.getElementById('nav')!;
+  const burger = document.getElementById('burger')!;
+  const setOpen = (o: boolean) => { nav.classList.toggle('open', o); burger.setAttribute('aria-expanded', String(o)); burger.setAttribute('aria-label', o ? 'Close menu' : 'Open menu'); document.body.style.overflow = o ? 'hidden' : ''; };
+  burger.addEventListener('click', () => setOpen(!nav.classList.contains('open')));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && nav.classList.contains('open')) { setOpen(false); burger.focus(); } });
+  nav.querySelectorAll('#navlist a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+  const threshold = () => (document.querySelector('[data-nav-solid-after]') as HTMLElement | null)?.offsetHeight ?? 40;
+  const onScroll = () => nav.classList.toggle('solid', scrollY > threshold() - 80);
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>

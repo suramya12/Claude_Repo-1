@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import ExperienceCard from '../components/ExperienceCard.astro';
+import SkyFlags from '../components/SkyFlags.astro';
+import { EXPERIENCES, DISHES } from '../data/experiences';
+const desc = 'Twelve things you can only do in Bhutan, from hot stone baths and archery matches to the Snowman Trek, plus what to eat: ema datshi, red rice, momos and more.';
+---
+<Base title="Experiences & food" description={desc}>
+  <PageHero scene="phobjikha" eyebrow="Things you can only do here" title="Don’t just look. Live it." lede="Bhutan rewards slowing down: a farmhouse night, a festival morning, a long walk with a guide who grew up in the valley." label="Painted Phobjikha valley with cranes" />
+
+  <section class="wrap sec-tight" aria-labelledby="do-h">
+    <div class="sec-head"><span class="eyebrow">{EXPERIENCES.length} experiences</span><h2 class="display sm" id="do-h">What to do</h2></div>
+    <div class="exp-grid">{EXPERIENCES.map((e) => <ExperienceCard e={e} />)}</div>
+  </section>
+
+  <section class="wrap sec-tight" aria-labelledby="eat-h">
+    <div class="sec-head">
+      <span class="eyebrow">What to eat</span>
+      <h2 class="display sm" id="eat-h">Chilli is a vegetable</h2>
+      <p class="lede">Bhutanese food is built on chillies, cheese and red rice. Hotels often tone it down for visitors. Ask for the real thing at least once.</p>
+    </div>
+    <ul class="dishes">
+      {DISHES.map((d) => (
+        <li class="reveal"><h3>{d.name}</h3><span class:list={['local', { tib: /[ༀ-࿿]/.test(d.local) }]} lang={/[ༀ-࿿]/.test(d.local) ? 'dz' : undefined}>{d.local}</span><p>{d.text}</p></li>
+      ))}
+    </ul>
+  </section>
+
+  <SkyFlags />
+</Base>
+
+<style>
+  .sm { font-size: clamp(2rem, 4.5vw, 3.6rem) !important; }
+  .dishes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+  .dishes li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+  .dishes li:nth-child(odd) { padding-right: clamp(16px, 3vw, 40px); }
+  .dishes li:nth-child(even) { padding-left: clamp(16px, 3vw, 40px); border-left: 1px solid var(--line); }
+  .local { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.08em; color: var(--saffron); text-transform: uppercase; align-self: center; }
+  .local.tib { font-family: var(--tib); font-size: 16px; text-transform: none; letter-spacing: 0; }
+  .dishes p { grid-column: 1 / -1; color: var(--mist); font-size: 15.5px; }
+  @media (max-width: 760px) { .dishes { grid-template-columns: minmax(0, 1fr); } .dishes li:nth-child(n) { padding-inline: 0; border-left: 0; } }
+</style>

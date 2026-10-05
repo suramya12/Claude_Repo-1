@@ -1,0 +1,49 @@
+---
+import { SITE, url } from '../lib/site';
+const year = new Date().getFullYear();
+const cols = [
+  { h: 'Explore', links: [['/wonders/', 'Seven wonders'], ['/places/', 'Map of places'], ['/mountains/', 'Mountains & treks'], ['/festivals/', 'Festival calendar'], ['/experiences/', 'Experiences & food']] },
+  { h: 'Plan', links: [['/itineraries/', 'Itineraries'], ['/plan/', 'Travel guide'], ['/plan/#fees', 'Fee calculator'], ['/plan/#faq', 'FAQ']] },
+  { h: 'About', links: [['/about/', 'About & sources'], ['/about/#credits', 'Photo credits'], ['https://www.bhutan.travel', 'Department of Tourism ↗']] },
+];
+---
+<footer class="foot">
+  <div class="wrap grid">
+    <div class="intro">
+      <a class="brand" href={url('/')}><b>INTO BHUTAN<i>.</i></b></a>
+      <p>{SITE.description}</p>
+      <p class="tib" lang="dz">བཀྲ་ཤིས་བདེ་ལེགས། <span>Tashi delek</span></p>
+    </div>
+    {cols.map((c) => (
+      <nav aria-label={c.h}>
+        <h2>{c.h}</h2>
+        <ul>
+          {c.links.map(([href, label]) => (
+            <li><a href={url(href)} {...(href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}>{label}</a></li>
+          ))}
+        </ul>
+      </nav>
+    ))}
+  </div>
+  <div class="wrap legal">
+    <p>© {year} Into Bhutan. An independent guide, not affiliated with the Royal Government of Bhutan. Facts checked {SITE.checked}. Fees, visa rules and lunar festival dates change: confirm with the Department of Tourism or a licensed operator before booking.</p>
+  </div>
+</footer>
+
+<style>
+  .foot { border-top: 1px solid var(--line); padding-block: 64px 40px; background: var(--night); }
+  .grid { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap: 40px; }
+  .brand { text-decoration: none; font-family: var(--display); font-stretch: 125%; font-weight: 800; letter-spacing: 0.06em; font-size: 15px; }
+  .brand i { color: var(--saffron); font-style: normal; }
+  .intro { display: grid; gap: 14px; align-content: start; }
+  .intro p { color: var(--fog); font-size: 14.5px; max-width: 44ch; }
+  .intro .tib { color: var(--mist); font-size: 18px; }
+  .intro .tib span { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fog); margin-left: 8px; }
+  h2 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--saffron); font-weight: 500; margin: 0 0 14px; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  ul a { text-decoration: none; color: var(--mist); font-size: 14.5px; }
+  ul a:hover { color: var(--snow); }
+  .legal { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .legal p { font-size: 12.5px; color: var(--fog); max-width: 110ch; }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .intro { grid-column: 1 / -1; } }
+</style>

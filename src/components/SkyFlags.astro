@@ -1,0 +1,106 @@
+---
+/* Night sky over the Himalaya with prayer flags. Press and hold to raise the wind and send prayers off the flags. */
+---
+<section class="skies" aria-labelledby="skies-h">
+  <div class="stage">
+    <canvas class="sky" aria-hidden="true"></canvas>
+    <div class="copy wrap">
+      <span class="eyebrow">Iconic skies</span>
+      <h2 class="display" id="skies-h">Skies that<br />carry prayers</h2>
+      <p class="lede">Every ridge in Bhutan is strung with lungta, “wind horses”: prayer flags in blue, white, red, green and yellow. The belief is simple. Each time the wind moves a flag, it carries the prayer printed on it out across the valley.</p>
+      <button class="hold" type="button"><span class="r" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M1 6c3-2 6 2 9 0s4-1 5 0M1 10c3-2 6 2 9 0s4-1 5 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"></path></svg></span>Hold to send a prayer on the wind</button>
+      <p class="count" aria-live="polite">Prayers you have sent: <b class="n">0</b> · <span class="tib" lang="bo">ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ།</span></p>
+    </div>
+  </div>
+  <div class="wrap cards">
+    <article class="reveal"><span class="k">Paro approach · 2,235 m</span><h3>The most dramatic landing in the world</h3><p>Planes bank between ridges and only see the runway moments before touchdown. Landings are flown by hand in daylight, and only a few dozen pilots are certified to make them. Ask for a window seat.</p></article>
+    <article class="reveal"><span class="k">Dochula · 3,100 m · Oct–Feb</span><h3>Sunrise over the whole Himalaya</h3><p>On clear winter mornings the pass shows the full Bhutan range, Gangkhar Puensum included, glowing pink above 108 white chortens.</p></article>
+    <article class="reveal"><span class="k">Druk · the Thunder Dragon</span><h3>A country named after a storm</h3><p>Monsoon thunder rolling through the valleys was heard as the voice of a dragon. The dragon now sits on the national flag, holding jewels for wealth and protection.</p></article>
+  </div>
+</section>
+
+<style>
+  .stage { position: relative; height: clamp(560px, 88vh, 820px); overflow: hidden; }
+  .sky { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .copy { position: absolute; inset: 0; display: grid; align-content: start; gap: 18px; padding-top: clamp(70px, 9vw, 120px); max-width: 1440px; margin-inline: auto; pointer-events: none; }
+  .copy > * { pointer-events: auto; }
+  .lede { max-width: 48ch; }
+  .hold { justify-self: start; display: inline-flex; align-items: center; gap: 14px; padding: 14px 22px 14px 14px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(10, 14, 17, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-family: var(--display); font-stretch: 112%; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; user-select: none; -webkit-user-select: none; touch-action: none; }
+  .r { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--saffron); color: var(--saffron-ink); transition: transform 0.3s; }
+  .hold:global(.on) .r { transform: scale(1.15); }
+  .hold:global(.on) { border-color: var(--saffron); }
+  .count { font-family: var(--mono); font-size: 12px; color: var(--mist); letter-spacing: 0.08em; }
+  .count b { color: var(--saffron); font-weight: 500; }
+  .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 28px); padding-block: clamp(48px, 6vw, 80px) clamp(40px, 6vw, 80px); }
+  .cards article { display: grid; gap: 10px; align-content: start; padding-top: 20px; border-top: 1px solid var(--line-2); }
+  .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--saffron); text-transform: uppercase; }
+  .cards p { color: var(--mist); font-size: 15.5px; }
+  @media (max-width: 800px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<script>
+  import { buildScene, paintScene, SPECS, flagLine, ridgePath, fitCanvas, whileVisible, reducedMotion, rng, lerp } from '../lib/scenes';
+
+  document.querySelectorAll<HTMLElement>('.skies').forEach((root) => {
+    const cv = root.querySelector<HTMLCanvasElement>('.sky')!, ctx = cv.getContext('2d')!;
+    const btn = root.querySelector<HTMLButtonElement>('.hold')!, nEl = root.querySelector<HTMLElement>('.n')!;
+    const spec = { ...SPECS.sky, flash: { v: 0 } };
+    const sc = buildScene(spec);
+    const r = rng(31);
+    const mw = Array.from({ length: 900 }, () => { const u = r(); const off = (r() - 0.5) * (r() - 0.5) * 0.5; return { x: u, y: 0.05 + u * 0.5 + off, s: r() * 1.1 + 0.2, a: r() * 0.6 }; });
+    let wind = 0.25, target = 0.25, acc = 0, last = 0, nextBolt = 4;
+    let bolt: { pts: [number, number][]; t0: number } | null = null;
+    let count = 0;
+    try { count = +(localStorage.getItem('bt-prayers') || 0); } catch {}
+    nEl.textContent = count.toLocaleString('en-US');
+    const parts: { x: number; y: number; vx: number; vy: number; life: number; s: string }[] = [];
+    const syl = ['ཨོཾ', 'མ', 'ཎི', 'པདྨེ', 'ཧཱུྃ'];
+    const tib = getComputedStyle(document.documentElement).getPropertyValue('--tib');
+    const on = () => { target = 1.6; btn.classList.add('on'); };
+    const off = () => { target = 0.25; btn.classList.remove('on'); try { localStorage.setItem('bt-prayers', String(count)); } catch {} };
+    btn.addEventListener('pointerdown', (e) => { e.preventDefault(); btn.setPointerCapture?.(e.pointerId); on(); });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => btn.addEventListener(ev, off));
+    btn.addEventListener('keydown', (e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); on(); } });
+    btn.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') off(); });
+    btn.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    whileVisible(cv, (t) => {
+      const { W, H, d } = fitCanvas(cv);
+      const dt = Math.min(0.05, t - last || 0); last = t;
+      wind += (target - wind) * 0.04;
+      if (target > 1) { acc += dt; if (acc > 0.6) { acc = 0; count++; nEl.textContent = count.toLocaleString('en-US'); } }
+      if (!reducedMotion() && t > nextBolt) {
+        nextBolt = t + 7 + Math.random() * 8;
+        const bx = W * (0.2 + Math.random() * 0.6); const pts: [number, number][] = [[bx, 0]]; let y = 0, x = bx;
+        while (y < H * 0.7) { y += H * 0.04 + Math.random() * H * 0.04; x += (Math.random() - 0.5) * W * 0.05; pts.push([x, y]); }
+        bolt = { pts, t0: t };
+      }
+      spec.flash.v = 0;
+      if (bolt) { const k = t - bolt.t0; spec.flash.v = k < 0.08 || (k > 0.16 && k < 0.24) ? 1 : Math.max(0, 0.5 - k); }
+      paintScene(ctx, W, H, sc, t);
+      for (const s of mw) { ctx.globalAlpha = s.a * 0.6; ctx.fillStyle = '#dfe6f5'; ctx.fillRect(s.x * W, s.y * H * 0.75, s.s * d, s.s * d); }
+      ctx.globalAlpha = 1;
+      if (bolt) {
+        const k = t - bolt.t0;
+        if (k < 0.3) {
+          ctx.strokeStyle = `rgba(225,235,255,${1 - k / 0.3})`; ctx.lineWidth = 2 * d; ctx.shadowColor = '#cfe0ff'; ctx.shadowBlur = 18 * d;
+          ctx.beginPath(); bolt.pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke(); ctx.shadowBlur = 0;
+          const L = sc.layers[0]; ctx.fillStyle = L.c2 || L.c; ridgePath(ctx, L.pts, W, H, 0); ctx.fill();
+          const L2 = sc.layers[1]; ctx.fillStyle = L2.c; ridgePath(ctx, L2.pts, W, H, 0); ctx.fill();
+        } else bolt = null;
+      }
+      const lines = W < 700 ? [[-0.02, 0.74, 1.02, 0.8, 0.06, 18], [-0.02, 0.86, 1.02, 0.84, 0.06, 22]] : [[0.45, 0.5, 1.02, 0.62, 0.07, 24], [-0.02, 0.76, 0.6, 0.82, 0.05, 26], [0.4, 0.8, 1.02, 0.76, 0.07, 28]];
+      lines.forEach(([x1, y1, x2, y2, sag, n], k) => flagLine(ctx, x1 * W, y1 * H, x2 * W, y2 * H, sag * H, n, Math.min(H * 0.026, W * 0.03), t, Math.min(1, wind), k));
+      if (wind > 0.6 && Math.random() < wind * 0.25) {
+        const L = lines[Math.floor(Math.random() * lines.length)], u = Math.random();
+        parts.push({ x: lerp(L[0], L[2], u) * W, y: lerp(L[1], L[3], u) * H + L[4] * H * 0.8, vx: (1 + Math.random()) * W * 0.002, vy: -(0.5 + Math.random()) * H * 0.0015, life: 1, s: syl[Math.floor(Math.random() * 5)] });
+      }
+      ctx.font = `${16 * d}px ${tib}`;
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i]; p.x += p.vx * wind; p.y += p.vy; p.life -= 0.006;
+        if (p.life <= 0) { parts.splice(i, 1); continue; }
+        ctx.fillStyle = `rgba(244,200,120,${p.life * 0.85})`; ctx.fillText(p.s, p.x, p.y);
+      }
+    });
+  });
+</script>

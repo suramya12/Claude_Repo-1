@@ -1,0 +1,144 @@
+---
+/* Scroll-driven descent from orbit to Bhutan. The section is tall; the canvas is sticky inside it. */
+import { url } from '../lib/site';
+---
+<section id="earth" class="earth" aria-label="From orbit to Bhutan" data-nav-solid-after>
+  <div class="stick">
+    <canvas id="globe" aria-hidden="true"></canvas>
+    <div class="copy wrap">
+      <h1 class="display title">Into<br /><em>Bhutan</em></h1>
+      <div class="foot">
+        <div class="cap" id="earthCap">
+          <p data-from="0" data-to=".32"><small>Third planet from the Sun</small>Eight billion people. One small kingdom that measures its progress in happiness instead of money.</p>
+          <p data-from=".32" data-to=".66" class="off"><small class="mono">27.5° N · 90.4° E</small>Folded into the Eastern Himalaya between India and Tibet, about the size of Switzerland, with land climbing from 100&nbsp;m jungle to 7,570&nbsp;m ice.</p>
+          <p data-from=".66" data-to="1.01" class="off"><span class="tib" lang="dz">འབྲུག་ཡུལ།</span>Druk Yul. The Land of the Thunder Dragon. Seven wonders below.</p>
+        </div>
+        <div class="side">
+          <div class="alt mono" id="earthAlt" aria-hidden="true">ALT 408 KM</div>
+          <a class="hint" href={url('/#wonders')}><i></i>Scroll to descend</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .earth { height: 280vh; background: var(--night); position: relative; }
+  .stick { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .copy { position: absolute; inset: 0; display: grid; align-content: space-between; padding-top: calc(var(--nav-h) + 32px); padding-bottom: 40px; pointer-events: none; }
+  .copy a { pointer-events: auto; }
+  .title { font-size: clamp(3rem, 10.5vw, 10rem); }
+  .title em { font-style: normal; color: var(--saffron); }
+  .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+  .cap { position: relative; min-height: 9.5em; flex: 1 1 20rem; max-width: 34rem; }
+  .cap p { position: absolute; inset: auto 0 0 0; font-size: clamp(1.05rem, 1.8vw, 1.35rem); transition: opacity 0.5s, transform 0.5s; }
+  .cap p small { display: block; font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; color: var(--saffron); text-transform: uppercase; margin-bottom: 8px; }
+  .cap p .tib { font-size: 1.6em; color: var(--saffron); display: block; line-height: 1.5; }
+  .cap p.off { opacity: 0; transform: translateY(14px); }
+  .side { display: grid; gap: 14px; justify-items: end; }
+  .alt { font-size: 12px; letter-spacing: 0.14em; color: var(--saffron); }
+  .hint { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mist); text-decoration: none; }
+  .hint i { width: 1px; height: 38px; background: linear-gradient(var(--saffron), transparent); animation: drip 2.2s infinite; }
+  @keyframes drip { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+  @media (prefers-reduced-motion: reduce) { .earth { height: 100vh; } }
+</style>
+
+<script>
+  import { geoOrthographic, geoPath, geoGraticule10 } from 'd3-geo';
+  import type { Feature, Geometry } from 'geojson';
+  import geo from '../data/geo.json';
+  import { PLACES } from '../data/places';
+  import { WONDERS } from '../data/wonders';
+  import { clamp, lerp, ease, rng, fitCanvas, whileVisible, reducedMotion } from '../lib/scenes';
+
+  const cv = document.getElementById('globe') as HTMLCanvasElement;
+  const ctx = cv.getContext('2d')!;
+  const sec = document.getElementById('earth')!;
+  const caps = [...document.querySelectorAll<HTMLElement>('#earthCap p')];
+  const altEl = document.getElementById('earthAlt')!;
+  const land: Feature<Geometry> = { type: 'Feature', geometry: geo.land as Geometry, properties: {} };
+  const bt: Feature<Geometry> = { type: 'Feature', geometry: geo.bhutan as Geometry, properties: {} };
+  const grat = geoGraticule10();
+  const proj = geoOrthographic().clipAngle(90).precision(0.4);
+  const path = geoPath(proj, ctx);
+  const C: [number, number] = [90.43, 27.42];
+  const r = rng(4);
+  const stars = Array.from({ length: 500 }, () => ({ x: r(), y: r(), s: r() * r() * 1.6 + 0.2, p: r() * 6 }));
+  const wonders = WONDERS.map((w) => PLACES.find((p) => p.slug === w.slug)!);
+  const mono = getComputedStyle(document.documentElement).getPropertyValue('--mono');
+  let prog = 0, spin = -30, last = 0;
+  const measure = () => { const rc = sec.getBoundingClientRect(); prog = clamp(-rc.top / Math.max(1, rc.height - innerHeight), 0, 1); };
+  addEventListener('scroll', measure, { passive: true });
+  measure();
+  const fmt = (n: number) => Math.round(n).toLocaleString('en-US');
+
+  function draw(t: number) {
+    const { W, H, d } = fitCanvas(cv);
+    const dt = Math.min(0.05, t - last || 0); last = t;
+    if (!reducedMotion()) spin += dt * 7;
+    const p = reducedMotion() ? 0 : prog;
+    caps.forEach((c) => c.classList.toggle('off', !(p >= +c.dataset.from! && p < +c.dataset.to!)));
+    const km = Math.exp(lerp(Math.log(408), Math.log(3), ease(clamp((p - 0.1) / 0.9, 0, 1))));
+    altEl.textContent = 'ALT ' + (km >= 10 ? fmt(km) : km.toFixed(1)) + ' KM';
+
+    const a = ease(clamp(p / 0.5, 0, 1));
+    const s0 = (((spin % 360) + 540) % 360) - 180;
+    const dl = ((-C[0] - s0 + 540) % 360) - 180;
+    const lam = s0 + dl * a, phi = lerp(-12, -C[1], a);
+    const base = Math.min(W, H) * 0.36, zoomTo = (Math.min(W, H) * 0.6) / 0.065;
+    const z = ease(clamp((p - 0.42) / 0.55, 0, 1));
+    const scale = Math.exp(lerp(Math.log(base), Math.log(zoomTo), z));
+    const cx = lerp(W * (W > H ? 0.66 : 0.5), W * 0.5, z), cy = lerp(H * (W > H ? 0.5 : 0.46), H * 0.52, z);
+    proj.rotate([lam, phi]).scale(scale).translate([cx, cy]);
+
+    ctx.fillStyle = '#070a0d'; ctx.fillRect(0, 0, W, H);
+    for (const s of stars) { ctx.globalAlpha = (0.3 + 0.7 * Math.abs(Math.sin(t * 0.8 + s.p))) * (1 - z * 0.9); ctx.fillStyle = '#fff'; ctx.fillRect(s.x * W, s.y * H, s.s * d, s.s * d); }
+    ctx.globalAlpha = 1;
+    let g = ctx.createRadialGradient(cx, cy, scale * 0.9, cx, cy, scale * 1.25);
+    g.addColorStop(0, 'rgba(110,170,200,.35)'); g.addColorStop(1, 'rgba(110,170,200,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, scale * 1.25, 0, 6.28); ctx.fill();
+    g = ctx.createRadialGradient(cx - scale * 0.35, cy - scale * 0.35, scale * 0.1, cx, cy, scale);
+    g.addColorStop(0, '#1b3640'); g.addColorStop(1, '#071319');
+    ctx.fillStyle = g; ctx.beginPath(); path({ type: 'Sphere' }); ctx.fill();
+    ctx.beginPath(); path(grat); ctx.strokeStyle = 'rgba(160,200,210,.08)'; ctx.lineWidth = d; ctx.stroke();
+    ctx.beginPath(); path(land);
+    g = ctx.createRadialGradient(cx - scale * 0.3, cy - scale * 0.3, scale * 0.1, cx, cy, scale);
+    g.addColorStop(0, '#3b4a43'); g.addColorStop(1, '#1a2420');
+    ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = 'rgba(200,220,210,.18)'; ctx.lineWidth = 0.6 * d; ctx.stroke();
+    g = ctx.createLinearGradient(cx - scale, cy - scale, cx + scale, cy + scale);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${0.55 * (1 - z)})`);
+    ctx.fillStyle = g; ctx.beginPath(); path({ type: 'Sphere' }); ctx.fill();
+    ctx.beginPath(); path(bt);
+    ctx.fillStyle = `rgba(231,163,62,${0.55 + 0.25 * Math.sin(t * 2)})`; ctx.shadowColor = 'rgba(231,163,62,.9)'; ctx.shadowBlur = 20 * d; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#f5c77a'; ctx.lineWidth = 1.2 * d; ctx.stroke();
+
+    const bp = proj(C);
+    if (bp && z < 0.6) {
+      const k = 1 - z / 0.6, pr = (t * 0.6) % 1, sg = bp[0] + 130 * d > W ? -1 : 1;
+      ctx.strokeStyle = `rgba(231,163,62,${(1 - pr) * k})`; ctx.lineWidth = 1.5 * d; ctx.beginPath(); ctx.arc(bp[0], bp[1], (8 + pr * 30) * d, 0, 6.28); ctx.stroke();
+      ctx.globalAlpha = k; ctx.strokeStyle = 'rgba(237,240,236,.6)'; ctx.lineWidth = d;
+      ctx.beginPath(); ctx.moveTo(bp[0], bp[1]); ctx.lineTo(bp[0] + sg * 40 * d, bp[1] - 40 * d); ctx.lineTo(bp[0] + sg * 120 * d, bp[1] - 40 * d); ctx.stroke();
+      ctx.fillStyle = '#edf0ec'; ctx.font = `600 ${12 * d}px ${mono}`; ctx.textAlign = sg < 0 ? 'right' : 'left';
+      ctx.fillText('BHUTAN', bp[0] + sg * 46 * d, bp[1] - 48 * d); ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+    }
+    if (z > 0.5) {
+      const k = clamp((z - 0.5) / 0.4, 0, 1);
+      ctx.globalAlpha = k * 0.55; ctx.fillStyle = '#a9b4b5'; ctx.font = `600 ${13 * d}px ${mono}`; ctx.textAlign = 'center';
+      for (const [l, lo, la] of [['T I B E T', 90.3, 28.55], ['I N D I A', 90.6, 26.45], ['S I K K I M', 88.55, 27.45], ['A R U N A C H A L', 92.3, 27.6]] as [string, number, number][]) { const q = proj([lo, la]); if (q) ctx.fillText(l, q[0], q[1]); }
+      ctx.globalAlpha = k; ctx.font = `500 ${11 * d}px ${mono}`; ctx.textAlign = 'left';
+      wonders.forEach((w, i) => {
+        const q = proj([w.lon, w.lat]); if (!q) return;
+        ctx.fillStyle = '#edf0ec'; ctx.beginPath(); ctx.arc(q[0], q[1], 3.5 * d, 0, 6.28); ctx.fill();
+        const lb = String(i + 1).padStart(2, '0') + ([0, 1, 2, 5, 6].includes(i) ? ' ' + w.name.toUpperCase() : '');
+        const oy = ({ 4: 14, 3: -8, 0: -6, 5: 12 } as Record<number, number>)[i] ?? 4;
+        ctx.fillStyle = 'rgba(237,240,236,.85)'; ctx.fillText(lb, q[0] + 8 * d, q[1] + oy * d);
+      });
+      ctx.globalAlpha = 1;
+    }
+  }
+  whileVisible(cv, draw);
+  // Keep the descent in step with scrolling even before the ambient animation starts.
+  let pending = false;
+  addEventListener('scroll', () => { if (pending) return; pending = true; requestAnimationFrame(() => { pending = false; draw(performance.now() / 1000); }); }, { passive: true });
+</script>

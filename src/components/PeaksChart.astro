@@ -1,0 +1,117 @@
+---
+/* Elevation chart of Bhutan's highest peaks, drawn to one scale, with human reference lines. */
+import { PEAKS, HUMAN_MARKS } from '../data/mountains';
+import { rng, hash } from '../lib/scenes';
+import { fmt, url } from '../lib/site';
+
+const W = 1000, top = 40, bot = 420, left = 60;
+const sel0 = PEAKS.findIndex((p) => p.id === 'gangkhar');
+function build(max: number) {
+  const y = (v: number) => bot - (v / max) * (bot - top);
+  const peaks = PEAKS.map((p) => {
+    const r = rng(hash(p.id)); const ty = y(p.alt), x = p.x, hw = (bot - ty) * 0.62, n = 9;
+    let d = `M${x - hw},${bot}`;
+    for (let k = 1; k < n; k++) { const u = k / n; d += ` L${(x - hw + u * hw + (r() - 0.5) * 16).toFixed(1)},${(bot - (bot - ty) * Math.pow(u, 1.25) + (r() - 0.5) * 14).toFixed(1)}`; }
+    d += ` L${x},${ty.toFixed(1)}`;
+    for (let k = n - 1; k > 0; k--) { const u = k / n; d += ` L${(x + hw - u * hw + (r() - 0.5) * 16).toFixed(1)},${(bot - (bot - ty) * Math.pow(u, 1.15) + (r() - 0.5) * 14).toFixed(1)}`; }
+    return { ...p, d: d + ` L${x + hw},${bot}Z`, ty };
+  });
+  const ticks = []; for (let v = 0; v <= max; v += 1000) ticks.push({ v, y: y(v) });
+  return { y, peaks, ticks, human: HUMAN_MARKS.map(([v, l]) => ({ v, l, y: y(v) })), everest: y(8849) };
+}
+const views = { base: build(8000), everest: build(9000) };
+const data = PEAKS.map((p) => ({ ...p, href: p.place ? url(`/places/${p.place}/`) : '' }));
+---
+<div class="pc">
+  <div class="grid">
+    <div>
+      <div class="chart">
+        {(['base', 'everest'] as const).map((k) => { const v = views[k]; return (
+          <svg viewBox={`0 0 ${W} 470`} class={`view-${k}`} style={k === 'everest' ? 'display:none' : undefined} role="group" aria-label="Elevation chart of Bhutan's highest peaks">
+            <defs>
+              <linearGradient id={`pg-${k}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f6f8" /><stop offset=".32" stop-color="#c8d2dc" /><stop offset=".55" stop-color="#4c5a6c" /><stop offset="1" stop-color="#1a242c" /></linearGradient>
+              <linearGradient id={`pgs-${k}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd79a" /><stop offset=".3" stop-color="#e7a33e" /><stop offset=".6" stop-color="#6a4a26" /><stop offset="1" stop-color="#1a1408" /></linearGradient>
+            </defs>
+            {v.ticks.map((t) => <g><line x1={left} x2={W - 20} y1={t.y} y2={t.y} class="gl" /><text x={left - 10} y={t.y + 4} class="tick">{t.v === 0 ? '0 m' : fmt(t.v)}</text></g>)}
+            {k === 'everest' && <g class="ghost"><path d={`M780,${bot} L890,${v.everest + 40} L920,${v.everest} L940,${v.everest + 30} L1010,${bot}`} /><text x="920" y={v.everest - 10} text-anchor="middle">Everest 8,849 m</text></g>}
+            {v.peaks.map((p, i) => (
+              <g class:list={['pk', { dim: i !== sel0 }]} data-i={i} tabindex="0" role="button" aria-label={`${p.name}, ${fmt(p.alt)} metres`} aria-pressed={i === sel0 ? 'true' : 'false'}>
+                <path d={p.d} fill={i === sel0 ? `url(#pgs-${k})` : `url(#pg-${k})`} data-fill={`url(#pg-${k})`} data-fill-sel={`url(#pgs-${k})`} stroke="rgba(10,14,17,.6)" />
+                <text x={p.x} y={p.ty - 26} class="pname">{p.name}</text>
+                <text x={p.x} y={p.ty - 10} class="palt">{fmt(p.alt)} m</text>
+              </g>
+            ))}
+            {v.human.map((h) => <g><line x1={left} x2={W - 20} y1={h.y} y2={h.y} class="human" /><text x={W - 24} y={h.y - 6} class="hlabel">{h.l} · {fmt(h.v)} m</text></g>)}
+            <line x1={left} x2={W - 20} y1={bot} y2={bot} stroke="rgba(237,240,236,.3)" />
+          </svg>
+        ); })}
+      </div>
+      <label class="toggle"><input type="checkbox" class="ev" /> Show Everest (8,849 m) for scale</label>
+    </div>
+    <div class="card" aria-live="polite">
+      <span class="eyebrow ctrek">{PEAKS[sel0].trek}</span>
+      <h3 class="display cname">{PEAKS[sel0].name}</h3>
+      <div class="calt">{fmt(PEAKS[sel0].alt)}<small> m</small></div>
+      <p class="ctext">{PEAKS[sel0].text}</p>
+      <p class="note cnote">{PEAKS[sel0].note}</p>
+      <a class="link-arrow clink" href={url('/places/gangkhar-puensum/')}>Read more <span>→</span></a>
+    </div>
+  </div>
+  <script type="application/json" class="pcdata" set:html={JSON.stringify(data)} />
+</div>
+
+<style>
+  .grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 48px); align-items: center; }
+  .chart { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--line); background: linear-gradient(180deg, #0f171c, #0a0e11); }
+  svg { min-width: 640px; width: 100%; height: auto; }
+  .tick { font-family: var(--mono); font-size: 11px; fill: var(--fog); text-anchor: end; }
+  .gl { stroke: var(--line); }
+  .human { stroke: var(--saffron); stroke-dasharray: 3 5; opacity: 0.6; }
+  .hlabel { font-family: var(--mono); font-size: 10.5px; fill: var(--saffron); text-anchor: end; }
+  .pk { cursor: pointer; transition: opacity 0.3s; }
+  .pk:focus { outline: none; }
+  .pk:focus-visible path { stroke: var(--saffron); stroke-width: 2; }
+  .pk.dim { opacity: 0.5; }
+  .pname { font-family: var(--display); font-stretch: 112%; font-weight: 700; font-size: 13px; fill: var(--snow); text-anchor: middle; }
+  .palt { font-family: var(--mono); font-size: 11px; fill: var(--mist); text-anchor: middle; }
+  .ghost path { fill: none; stroke: var(--fog); stroke-dasharray: 4 6; }
+  .ghost text { font-family: var(--mono); font-size: 11px; fill: var(--fog); }
+  .toggle { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; color: var(--mist); cursor: pointer; margin-top: 14px; }
+  .toggle input { accent-color: var(--saffron); width: 16px; height: 16px; }
+  .card { display: grid; gap: 14px; justify-items: start; }
+  .cname { font-size: clamp(1.8rem, 3.4vw, 2.6rem); }
+  .calt { font-family: var(--display); font-stretch: 125%; font-weight: 800; font-size: clamp(3rem, 6vw, 5rem); line-height: 0.9; font-variant-numeric: tabular-nums; }
+  .calt small { font-size: 0.35em; color: var(--saffron); }
+  .ctext { color: var(--mist); }
+  @media (max-width: 960px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.pc').forEach((root) => {
+    const data = JSON.parse(root.querySelector('.pcdata')!.textContent!) as { name: string; alt: number; text: string; trek: string; note: string; href: string }[];
+    const q = (s: string) => root.querySelector(s) as HTMLElement;
+    let sel = data.findIndex((p) => p.name === 'Gangkhar Puensum');
+    const fmt = (n: number) => n.toLocaleString('en-US');
+    function paint() {
+      root.querySelectorAll<SVGGElement>('.pk').forEach((g) => {
+        const on = +g.dataset.i! === sel; g.classList.toggle('dim', !on); g.setAttribute('aria-pressed', String(on));
+        const p = g.querySelector('path')!; p.setAttribute('fill', on ? p.dataset.fillSel! : p.dataset.fill!);
+      });
+      const p = data[sel];
+      q('.ctrek').textContent = p.trek; q('.cname').textContent = p.name;
+      q('.calt').innerHTML = `${fmt(p.alt)}<small> m</small>`; q('.ctext').textContent = p.text; q('.cnote').textContent = p.note;
+      const a = q('.clink') as HTMLAnchorElement; a.hidden = !p.href; if (p.href) a.href = p.href;
+    }
+    root.querySelectorAll<SVGGElement>('.pk').forEach((g) => {
+      const pick = () => { sel = +g.dataset.i!; paint(); };
+      g.addEventListener('click', pick);
+      g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+    (q('.ev') as HTMLInputElement).addEventListener('change', (e) => {
+      const on = (e.target as HTMLInputElement).checked;
+      (q('.view-base') as unknown as SVGElement).style.display = on ? 'none' : '';
+      (q('.view-everest') as unknown as SVGElement).style.display = on ? '' : 'none';
+    });
+    paint();
+  });
+</script>

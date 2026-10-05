@@ -1,0 +1,53 @@
+---
+/* A place's image: licensed photograph when one exists, otherwise its painted canvas scene. */
+import { Picture } from 'astro:assets';
+import { PHOTOS } from '../data/photos';
+import { placeBySlug } from '../data/places';
+
+interface Props {
+  slug?: string;
+  scene?: string;
+  label: string;
+  class?: string;
+  eager?: boolean;
+  sizes?: string;
+  credit?: boolean;
+  preferScene?: boolean;
+  still?: boolean;
+}
+const { slug, scene, label, class: cls, eager = false, sizes = '(max-width: 800px) 100vw, 50vw', credit = false, preferScene = false, still = false } = Astro.props;
+const place = slug ? placeBySlug(slug) : undefined;
+const photo = slug && !preferScene ? PHOTOS[slug] : undefined;
+const sceneKey = scene ?? place?.scene ?? 'range';
+---
+{photo ? (
+  <figure class:list={['visual', cls]}>
+    <Picture src={photo.src} alt={photo.alt} formats={['avif', 'webp']} widths={[480, 800, 1200, 1800]} sizes={sizes} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} />
+    {credit && (
+      <figcaption>
+        <a href={photo.source} target="_blank" rel="noopener">Photo: {photo.author}</a>, <a href={photo.licenseUrl} target="_blank" rel="noopener">{photo.license}</a>
+      </figcaption>
+    )}
+  </figure>
+) : (
+  <canvas
+    class:list={['visual', cls]}
+    role="img"
+    aria-label={label}
+    data-scene={sceneKey}
+    data-kind={place?.kind}
+    data-seed={place?.slug}
+    data-night={place?.night ? 'true' : undefined}
+    data-w={place?.w}
+    data-static={still ? 'true' : undefined}
+  ></canvas>
+)}
+
+<style>
+  .visual { width: 100%; height: 100%; margin: 0; background: #0f151a; }
+  figure.visual { position: relative; }
+  figure.visual :global(img) { width: 100%; height: 100%; object-fit: cover; display: block; }
+  figcaption { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: rgba(237, 240, 236, 0.75); background: rgba(10, 14, 17, 0.55); padding: 3px 8px; border-radius: 3px; z-index: 2; }
+  figcaption a { color: inherit; text-decoration: none; }
+  figcaption a:hover { text-decoration: underline; }
+</style>

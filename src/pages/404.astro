@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/site';
+---
+<Base title="Page not found" description="This page could not be found." noindex>
+  <section class="nf">
+    <canvas data-scene="gangkhar" aria-hidden="true"></canvas>
+    <div class="wrap inner">
+      <span class="eyebrow">404 · Unclimbed</span>
+      <h1 class="display">Nobody has<br />been here</h1>
+      <p class="lede">Like Gangkhar Puensum, this page has never been reached. It may have moved, or the link may be mistyped.</p>
+      <div class="acts">
+        <a class="btn" href={url('/')}>Back to the start</a>
+        <a class="btn ghost" href={url('/places/')}>Browse the map</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .nf::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10, 14, 17, 0.85), rgba(10, 14, 17, 0.2)); }
+  .inner { position: relative; z-index: 1; display: grid; gap: 20px; padding-top: var(--nav-h); }
+  h1 { font-size: clamp(2.6rem, 8vw, 6.5rem); }
+  .acts { display: flex; flex-wrap: wrap; gap: 12px; }
+</style>

@@ -1,0 +1,49 @@
+---
+/* Internal: 1200×630 social cards, screenshotted by scripts/og-images.mjs into public/og/.
+   Only built when OG_RENDER=1, so it never ships with the site. */
+import '../../styles/global.css';
+import { WONDERS } from '../../data/wonders';
+import { placeBySlug } from '../../data/places';
+
+export function getStaticPaths() {
+  if (process.env.OG_RENDER !== '1') return [];
+  const cards = [
+    { slug: 'default', scene: 'taktsang', eyebrow: 'Druk Yul · The Land of the Thunder Dragon', title: ['Into', 'Bhutan'], tib: 'འབྲུག་ཡུལ།' },
+    ...WONDERS.map((w, i) => ({ slug: w.slug, scene: placeBySlug(w.slug)!.scene, eyebrow: `Wonder ${String(i + 1).padStart(2, '0')} of 07 · ${w.sub}`, title: w.title, tib: placeBySlug(w.slug)?.tib ?? '' })),
+  ];
+  return cards.map((c) => ({ params: { slug: c.slug }, props: c }));
+}
+const { scene, eyebrow, title, tib } = Astro.props;
+---
+<html lang="en">
+  <head><meta charset="utf-8" /><meta name="robots" content="noindex" /></head>
+  <body style="margin:0;width:1200px;height:630px;overflow:hidden;background:#0a0e11">
+    <div class="card">
+      <canvas data-scene={scene}></canvas>
+      <div class="txt">
+        <span class="eyebrow">{eyebrow}</span>
+        <h1 class="display">{title.map((t, i) => <span class:list={{ acc: i === title.length - 1 && title.length > 1 }}>{t}</span>)}</h1>
+        {tib && <p class="tib">{tib}</p>}
+      </div>
+      <span class="brand">INTO BHUTAN<i>.</i></span>
+    </div>
+    <style>
+      .card { position: relative; width: 1200px; height: 630px; }
+      canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(6,9,11,.85), rgba(6,9,11,.15) 70%); }
+      .txt { position: absolute; z-index: 2; left: 72px; bottom: 72px; display: grid; gap: 16px; }
+      h1 { font-size: 104px; display: grid; }
+      .acc { color: var(--saffron); }
+      .tib { font-size: 34px; color: var(--mist); }
+      .brand { position: absolute; z-index: 2; top: 56px; left: 72px; font-family: var(--display); font-stretch: 125%; font-weight: 800; letter-spacing: .08em; font-size: 20px; }
+      .brand i { color: var(--saffron); font-style: normal; }
+    </style>
+    <script>
+      import { buildScene, paintScene, specFromDataset } from '../../lib/scenes';
+      const cv = document.querySelector('canvas')!;
+      cv.width = 2400; cv.height = 1260;
+      paintScene(cv.getContext('2d')!, 2400, 1260, buildScene(specFromDataset(cv.dataset)), 6);
+      document.fonts.ready.then(() => document.body.setAttribute('data-ready', '1'));
+    </script>
+  </body>
+</html>

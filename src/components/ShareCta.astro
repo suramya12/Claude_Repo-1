@@ -1,0 +1,40 @@
+---
+import { url } from '../lib/site';
+interface Props { title?: string; lede?: string }
+const { title = 'The kingdom is waiting.', lede = 'Send this to the friend you’d go with. Then book the window seat.' } = Astro.props;
+---
+<section class="cta">
+  <canvas data-scene="dawn" aria-hidden="true"></canvas>
+  <div class="wrap inner">
+    <span class="eyebrow">Tashi delek · <span class="tib" lang="dz">བཀྲ་ཤིས་བདེ་ལེགས།</span></span>
+    <h2 class="display">{title}</h2>
+    <p class="lede">{lede}</p>
+    <div class="acts">
+      <button class="btn share" type="button">Share with a friend</button>
+      <a class="btn ghost" href={url('/plan/')}>Plan your trip</a>
+      <span class="status" role="status"></span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta { position: relative; overflow: hidden; padding-block: clamp(100px, 14vw, 200px) clamp(60px, 8vw, 100px); }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.9; }
+  .cta::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 35%; background: linear-gradient(var(--night), transparent); z-index: 1; }
+  .inner { position: relative; z-index: 2; display: grid; gap: 24px; }
+  h2 { font-size: clamp(2.8rem, 8.5vw, 8rem); max-width: 12ch; }
+  .acts { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .status { font-family: var(--mono); font-size: 12px; color: var(--saffron); }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.cta').forEach((root) => {
+    const btn = root.querySelector<HTMLButtonElement>('.share')!, st = root.querySelector<HTMLElement>('.status')!;
+    btn.addEventListener('click', async () => {
+      const data = { title: document.title, text: 'Why you should visit Bhutan', url: location.href.split('#')[0] };
+      if (navigator.share) { try { await navigator.share(data); return; } catch (e) { if ((e as DOMException).name === 'AbortError') return; } }
+      try { await navigator.clipboard.writeText(data.url); st.textContent = 'Link copied. Send it to someone.'; }
+      catch { st.textContent = data.url; }
+    });
+  });
+</script>
