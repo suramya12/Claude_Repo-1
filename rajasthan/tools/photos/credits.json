@@ -38,19 +38,6 @@
   "w": 1600,
   "h": 1200
  },
- "amber-sukh-niwas": {
-  "title": "Amber Palace-Sukh Mandir-Garden-20131017.jpg",
-  "author": "Daniel VILLAFRUELA",
-  "license": "CC BY-SA 3.0",
-  "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-  "source": "https://commons.wikimedia.org/wiki/File:Amber_Palace-Sukh_Mandir-Garden-20131017.jpg",
-  "description": "Garden Sukh Mandir (Diwan I Kas).",
-  "date": "Taken on 17 October 2013",
-  "lat": "26.986177",
-  "lon": "75.850717",
-  "w": 1600,
-  "h": 1067
- },
  "amber-zenana": {
   "title": "Amer Fort, Inner courtyard, India.jpg",
   "author": "Vyacheslav Argenberg",
@@ -623,19 +610,6 @@
   "w": 1600,
   "h": 1067
  },
- "dilwara": {
-  "title": "Plafond van Dilwara Tempel bij Mount Abu, RP-F-00-5347-69.jpg",
-  "author": "Rijksmuseum",
-  "license": "CC0",
-  "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-  "source": "https://commons.wikimedia.org/wiki/File:Plafond_van_Dilwara_Tempel_bij_Mount_Abu,_RP-F-00-5347-69.jpg",
-  "description": "Identificatie Titel(s): Plafond van Dilwara Tempel bij Mount Abu Objecttype: foto Objectnummer: RP-F-00-5347-69 Opschriften / Merken: annotatie, verso linksboven, handgeschreven op karton met pen in zwarte inkt: ‘69. Plafond i/d tempel te Dilwarra.’ Vervaardiging Vervaardiger: fotograaf: anoniem Pla",
-  "date": "ca. 1895 - ca. 1915",
-  "lat": null,
-  "lon": null,
-  "w": 1600,
-  "h": 1290
- },
  "banswara": {
   "title": "Siva Temple -Arthuna -Banswara -Rajasthan -IMG 002.jpg",
   "author": "Devendra Trivedi",
@@ -817,19 +791,6 @@
   "lon": null,
   "w": 1567,
   "h": 1600
- },
- "culture-turban": {
-  "title": "20191207 Street musician in Udaipur 1511 7249 01.jpg",
-  "author": "Jakub Hałun",
-  "license": "CC BY-SA 4.0",
-  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-  "source": "https://commons.wikimedia.org/wiki/File:20191207_Street_musician_in_Udaipur_1511_7249_01.jpg",
-  "description": "A street musician on the bank of Pichola Lake in Udaipur",
-  "date": "2019-12-07 15:11:53",
-  "lat": "24.579965",
-  "lon": "73.681941",
-  "w": 1600,
-  "h": 1184
  },
  "food-dal-baati": {
   "title": "\"Delectable Dal Baati Churma\".jpg",

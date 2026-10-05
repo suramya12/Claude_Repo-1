@@ -3,7 +3,7 @@
  "amber-jaleb-chowk": 5,
  "amber-diwan-i-aam": 0,
  "amber-ganesh-pol": 0,
- "amber-sukh-niwas": 3,
+ "amber-sukh-niwas": null,
  "amber-zenana": 1,
  "amber-sheesh-mahal": 7,
  "amber-jai-mandir": {
@@ -57,7 +57,7 @@
  "jawai": 1,
  "wild-leopard": null,
  "mount-abu": 2,
- "dilwara": 6,
+ "dilwara": null,
  "banswara": 6,
  "bundi": 1,
  "bundi-baori": null,
@@ -74,7 +74,7 @@
  "culture-bandhani": 0,
  "culture-miniature": 0,
  "culture-pichwai": 6,
- "culture-turban": 0,
+ "culture-turban": null,
  "food-dal-baati": 0,
  "food-thali": null,
  "food-ker-sangri": null,
@@ -90,6 +90,17 @@
  "fest-diwali": 0,
  "fest-holi": 1,
  "ranakpur-pillars": null,
- "culture-block-print": null,
- "food-laal-maas": null
+ "culture-block-print": {
+  "title": "File:Anokhi Hand Block.jpg"
+ },
+ "food-laal-maas": null,
+ "amber-fort": {
+  "title": "File:A bird eye view of Amer Fort Jaipur, India.jpg"
+ },
+ "blue-city": {
+  "title": "File:Mehrangarh Fort and the Blue City at dawn, Jodhpur.jpg"
+ },
+ "amber-fort-b": null,
+ "blue-city-b": null,
+ "culture-block-print-b": null
 }

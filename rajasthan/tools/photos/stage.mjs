@@ -136,7 +136,7 @@ for (const [slot, pick] of Object.entries(picks)) {
     fs.writeFileSync(src, Buffer.from(await (await get(c.thumb || p.imageinfo[0].url)).arrayBuffer()));
     const crop = typeof pick === 'object' && pick.crop ? ['-gravity', pick.gravity || 'center', '-crop', pick.crop, '+repage'] : [];
     for (const w of [1600, 800]) {
-      execFileSync('convert', [src, '-auto-orient', ...crop, '-resize', `${w}x${w}>`, '-strip', '-interlace', 'JPEG', '-sampling-factor', '4:2:0', '-quality', w === 1600 ? '74' : '72', path.join(IMG, `${slot}-${w}.jpg`)]);
+      execFileSync('convert', [src, '-auto-orient', ...crop, '-resize', `${w}x${w}>`, '-strip', '-interlace', 'JPEG', '-sampling-factor', '4:2:0', '-quality', '72', path.join(IMG, `${slot}-${w}.jpg`)]);
     }
     const dims = execFileSync('identify', ['-format', '%w %h', out]).toString().trim().split(' ').map(Number);
     fs.rmSync(src);
