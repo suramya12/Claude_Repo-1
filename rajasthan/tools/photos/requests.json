@@ -1,0 +1,136 @@
+{
+  "_about": "Search requests for Wikimedia Commons. Each slot gets up to 8 candidates on a contact sheet (tools/photos/review/). Picks go in picks.json.",
+  "amber-fort": { "q": ["Amer Fort Maota lake", "Amber Fort Jaipur"] },
+  "amber-jaleb-chowk": { "q": ["Jaleb Chowk Amer", "Amer Fort courtyard"] },
+  "amber-diwan-i-aam": { "q": ["Diwan-i-Aam Amer Fort", "Diwan-e-Aam Amber Fort"] },
+  "amber-ganesh-pol": { "q": ["Ganesh Pol Amer", "Ganesh Pol Amber Fort"] },
+  "amber-sukh-niwas": { "q": ["Sukh Niwas Amer", "Sukh Mandir Amber Fort"] },
+  "amber-zenana": { "q": ["Man Singh palace Amer Fort zenana", "Amer Fort baradari"] },
+  "amber-sheesh-mahal": { "q": ["Sheesh Mahal Amer Fort", "Jai Mandir Amer"] },
+  "amber-ceiling": {
+    "q": [
+      "Sheesh Mahal Amer ceiling",
+      "Amer Fort mirror ceiling"
+    ],
+    "portrait": true
+  },
+  "amber-mirror-detail": {
+    "q": [
+      "Amer Fort mirror work detail",
+      "Sheesh Mahal Amber mirror inlay"
+    ],
+    "portrait": true
+  },
+  "jaisalmer-fort": { "q": ["Jaisalmer Fort", "Sonar Qila Jaisalmer"] },
+  "jaisalmer-fort-lanes": { "q": ["Jaisalmer Fort street inside", "Jaisalmer fort lane"] },
+  "mehrangarh": { "q": ["Mehrangarh Fort Jodhpur", "Mehrangarh"] },
+  "mehrangarh-phool-mahal": { "q": ["Phool Mahal Mehrangarh", "Mehrangarh palace interior"] },
+  "ranakpur": { "q": ["Ranakpur Jain temple", "Ranakpur temple"] },
+  "ranakpur-pillars": {
+    "q": [
+      "Ranakpur pillars",
+      "Ranakpur temple interior"
+    ],
+    "portrait": true
+  },
+  "ranthambore": { "q": ["tiger Ranthambore National Park", "Ranthambore tiger"] },
+  "ranthambore-fort": { "q": ["Ranthambore Fort", "Ranthambhore fort"] },
+  "keoladeo": { "q": ["Keoladeo National Park", "Bharatpur bird sanctuary painted stork"] },
+  "pushkar": { "q": ["Pushkar lake ghats", "Pushkar lake"] },
+  "pushkar-fair": { "q": ["Pushkar camel fair", "Pushkar fair camels"] },
+  "jaipur-walled-city": { "q": ["Jaipur pink city street", "Johari Bazaar Jaipur"] },
+  "hawa-mahal": { "q": ["Hawa Mahal", "Hawa Mahal Jaipur facade"] },
+  "city-palace-jaipur": { "q": ["Chandra Mahal City Palace Jaipur", "City Palace Jaipur"] },
+  "jantar-mantar": { "q": ["Jantar Mantar Jaipur", "Jantar Mantar Jaipur instruments"] },
+  "samrat-yantra": {
+    "q": [
+      "Samrat Yantra Jaipur",
+      "Vrihat Samrat Yantra"
+    ],
+    "portrait": true
+  },
+  "nahargarh": { "q": ["Nahargarh Fort", "Nahargarh Jaipur view"] },
+  "chand-baori": { "q": ["Chand Baori", "Chand Baori Abhaneri stepwell"] },
+  "sambhar": { "q": ["Sambhar Salt Lake", "Sambhar lake flamingo"] },
+  "bhangarh": { "q": ["Bhangarh fort", "Bhangarh ruins"] },
+  "sariska": { "q": ["Sariska Tiger Reserve", "Sariska"] },
+  "mandawa": { "q": ["Mandawa haveli fresco", "Mandawa haveli"] },
+  "nawalgarh": { "q": ["Nawalgarh haveli", "Nawalgarh fresco"] },
+  "tal-chhapar": { "q": ["Tal Chhapar blackbuck", "Tal Chhapar sanctuary"] },
+  "patwon-ki-haveli": { "q": ["Patwon ki Haveli", "Patwon Ki Haveli Jaisalmer"] },
+  "gadisar": { "q": ["Gadisar Lake", "Gadsisar lake Jaisalmer"] },
+  "sam-dunes": { "q": ["Sam sand dunes Jaisalmer", "Thar desert dunes Jaisalmer camel"] },
+  "kuldhara": { "q": ["Kuldhara", "Kuldhara village"] },
+  "desert-np": { "q": ["Great Indian Bustard", "Desert National Park Jaisalmer"] },
+  "junagarh": { "q": ["Junagarh Fort Bikaner", "Junagarh Bikaner"] },
+  "karni-mata": { "q": ["Karni Mata Temple Deshnoke", "Karni Mata temple rats"] },
+  "blue-city": { "q": ["Jodhpur blue city", "Jodhpur blue houses"] },
+  "jaswant-thada": { "q": ["Jaswant Thada", "Jaswant Thada Jodhpur"] },
+  "umaid-bhawan": { "q": ["Umaid Bhawan Palace", "Umaid Bhawan Jodhpur"] },
+  "osian": { "q": ["Osian temple", "Osian Sachiya Mata"] },
+  "khejarli": { "q": ["Prosopis cineraria Rajasthan", "Khejri tree"] },
+  "udaipur": { "q": ["Udaipur Lake Pichola City Palace", "Udaipur skyline lake"] },
+  "city-palace-udaipur": { "q": ["City Palace Udaipur", "City Palace Udaipur courtyard"] },
+  "lake-pichola": { "q": ["Lake Palace Udaipur", "Lake Pichola Jag Niwas"] },
+  "bagore-ki-haveli": { "q": ["Bagore ki Haveli", "Gangaur Ghat Udaipur"] },
+  "chittorgarh": { "q": ["Vijay Stambh Chittorgarh", "Chittorgarh Fort"] },
+  "kumbhalgarh": { "q": ["Kumbhalgarh fort wall", "Kumbhalgarh"] },
+  "jawai": { "q": ["Jawai leopard", "Jawai Bandh"] },
+  "mount-abu": { "q": ["Nakki Lake Mount Abu", "Guru Shikhar Mount Abu"] },
+  "dilwara": { "q": ["Dilwara temples", "Dilwara temple Mount Abu"] },
+  "banswara": { "q": ["Banswara Rajasthan", "Mahi Bajaj Sagar dam"] },
+  "bundi": { "q": ["Bundi palace Taragarh", "Bundi Garh Palace"] },
+  "bundi-baori": { "q": ["Raniji ki Baori Bundi", "Raniji ki Baori"] },
+  "bundi-murals": { "q": ["Chitrashala Bundi", "Bundi mural painting"] },
+  "gagron": { "q": ["Gagron Fort", "Gagron fort Jhalawar"] },
+  "ramgarh-crater": { "q": ["Ramgarh crater", "Ramgarh crater Baran"] },
+  "ajmer-sharif": { "q": ["Ajmer Sharif Dargah", "Dargah Ajmer"] },
+  "kishangarh": {
+    "q": [
+      "Bani Thani",
+      "Kishangarh painting Radha"
+    ],
+    "portrait": true
+  },
+  "culture-kalbelia": { "q": ["Kalbelia dance", "Kalbeliya dancer"] },
+  "culture-ghoomar": { "q": ["Ghoomar dance", "Ghoomar"] },
+  "culture-manganiyar": { "q": ["Manganiyar musicians", "Kamaicha"] },
+  "culture-kathputli": { "q": ["Kathputli puppets Rajasthan", "Rajasthani puppets"] },
+  "culture-blue-pottery": { "q": ["Jaipur blue pottery", "blue pottery Jaipur"] },
+  "culture-block-print": { "q": ["Bagru block printing", "Sanganer hand block printing"] },
+  "culture-bandhani": { "q": ["Bandhani Rajasthan", "Leheriya"] },
+  "culture-miniature": {
+    "q": [
+      "Mewar painting Udaipur miniature",
+      "Rajput painting Mewar"
+    ],
+    "portrait": true
+  },
+  "culture-pichwai": {
+    "q": [
+      "Pichwai Nathdwara",
+      "Pichhwai"
+    ],
+    "portrait": true
+  },
+  "culture-turban": { "q": ["Rajasthani turban", "Rajasthan man turban portrait"] },
+  "food-thali": { "q": ["Rajasthani thali", "Rajasthani food thali"] },
+  "food-dal-baati": { "q": ["Dal baati churma", "Dal bati"] },
+  "food-laal-maas": { "q": ["Laal maas", "Lal maas Rajasthan"] },
+  "food-ker-sangri": { "q": ["Ker sangri", "Sangri"] },
+  "food-ghewar": { "q": ["Ghevar", "Ghewar sweet"] },
+  "food-kachori": { "q": ["Pyaz kachori", "Kachori Jodhpur"] },
+  "wild-leopard": { "q": ["Indian leopard Rajasthan", "leopard Jhalana"] },
+  "wild-blackbuck": { "q": ["Blackbuck Rajasthan", "Antilope cervicapra male"] },
+  "wild-sarus": { "q": ["Sarus crane Keoladeo", "Sarus crane Bharatpur"] },
+  "wild-camel": { "q": ["Dromedary camel Thar", "camel Jaisalmer desert"] },
+  "fest-gangaur": { "q": ["Gangaur festival", "Gangaur Rajasthan"] },
+  "fest-teej": { "q": ["Teej festival Jaipur", "Teej Rajasthan women"] },
+  "fest-kites": { "q": ["kite festival Jaipur Makar Sankranti", "Jaipur kites"] },
+  "fest-desert": { "q": ["Desert Festival Jaisalmer", "Jaisalmer desert festival"] },
+  "fest-diwali": { "q": ["Diwali Jaipur lights", "Diwali Rajasthan"] },
+  "fest-holi": { "q": ["Holi Rajasthan", "Holi Pushkar"] },
+  "amber-fort-b": { "q": ["Amer Palace Jaipur", "Amber Fort Jaipur Rajasthan India"] },
+  "blue-city-b": { "q": ["Brahmpuri Jodhpur", "Jodhpur blue houses old city"] },
+  "culture-block-print-b": { "q": ["Bagru print", "hand block printing Jaipur"] }
+}

@@ -1,0 +1,46 @@
+name: Rajasthan photos
+
+# Searches Wikimedia Commons for candidate photos (contact sheets for review) and downloads
+# the picked ones, resized and credited. Runs when the request or pick lists change.
+on:
+  push:
+    paths:
+      - rajasthan/tools/photos/requests.json
+      - rajasthan/tools/photos/picks.json
+      - rajasthan/tools/photos/stage.mjs
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rajasthan-photos-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  photos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install ImageMagick
+        run: |
+          command -v montage || (sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick)
+      - name: Search, review sheets and downloads
+        run: node rajasthan/tools/photos/stage.mjs
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rajasthan/tools/photos rajasthan/img
+          if git diff --cached --quiet; then echo "Nothing new"; exit 0; fi
+          git commit -m "Rajasthan photos: update review sheets, downloads and credits"
+          for i in 1 2 3 4; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

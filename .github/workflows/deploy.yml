@@ -28,6 +28,10 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
       - run: npx astro build
       - run: node scripts/check-links.mjs
+      - name: Add the Rajasthan panorama (static, served at /rajasthan/)
+        run: |
+          mkdir -p dist/rajasthan
+          cp -r rajasthan/index.html rajasthan/css rajasthan/js rajasthan/img dist/rajasthan/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

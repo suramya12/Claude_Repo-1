@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rajasthan Panorama</title>
+<meta name="description" content="Stand at the centre of Rajasthan and look around. Zoom from orbit into forts, temples, dunes and lakes, then plan the trip.">
+<meta name="theme-color" content="#0d0a08">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d0a08'/%3E%3Cpath d='M10 44h44l-6-10-6 4-6-14-6 14-6-4z' fill='%23e48a2e'/%3E%3Ccircle cx='32' cy='16' r='5' fill='%23f2e9d8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,800&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Tiro+Devanagari+Hindi&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the current scene</a>
+
+<div id="app" class="app" data-archetype="">
+  <main id="main" class="stage" tabindex="-1" aria-label="Scene"></main>
+
+  <!-- HUD -->
+  <header class="hud hud-top">
+    <div class="brand" aria-hidden="true"><span class="brand-name">Rajasthan</span><span class="brand-native" lang="hi">राजस्थान</span></div>
+    <nav class="crumbs" aria-label="Breadcrumb"><ol id="crumbs"></ol></nav>
+    <div class="hud-actions">
+      <button class="hbtn" id="btn-search" type="button" aria-label="Search scenes (slash key)" title="Search ( / )"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button>
+      <button class="hbtn" id="btn-sound" type="button" aria-pressed="false" aria-label="Ambient sound off" title="Sound"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path class="wave" d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/><path class="mute" d="M16 9.5l5 5m0-5-5 5"/></svg></button>
+      <button class="hbtn" id="btn-link" type="button" aria-label="Copy link to this view" title="Copy link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></button>
+      <button class="hbtn" id="btn-saved" type="button" aria-label="Saved places" title="Saved places"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span class="count" id="saved-count" hidden>0</span></button>
+      <button class="hbtn" id="btn-help" type="button" aria-label="How to move around" title="Help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.6-.8 1.1V14"/><circle cx="12" cy="17.2" r=".6"/></svg></button>
+    </div>
+  </header>
+
+  <div class="hud hud-left">
+    <button class="hbtn big" id="btn-out" type="button" aria-label="Zoom out one level (Esc)" title="Zoom out (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M16.5 16.5 21 21"/></svg></button>
+    <button class="hbtn big" id="btn-home" type="button" aria-label="Back to the panorama (Shift+Esc)" title="Panorama (Shift+Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17h18M5 17l4-6 3 3 3-7 4 10"/></svg></button>
+  </div>
+
+  <div class="hud gauge" id="gauge" aria-hidden="true">
+    <div class="gauge-track"><div class="gauge-fill" id="gauge-fill"></div><div class="gauge-mark" id="gauge-mark"></div></div>
+    <div class="gauge-label" id="gauge-label"></div>
+  </div>
+
+  <div class="hud minimap" id="minimap" aria-hidden="true"><svg viewBox="0 0 100 100"><path id="mm-outline"/><circle id="mm-dot" r="3.2"/><circle id="mm-ring" r="3.2"/></svg></div>
+
+  <div class="hud sibnav" id="sibnav">
+    <button class="sib prev" id="sib-prev" type="button"><span aria-hidden="true">‹</span><span class="sib-name"></span></button>
+    <button class="sib next" id="sib-next" type="button"><span class="sib-name"></span><span aria-hidden="true">›</span></button>
+  </div>
+</div>
+
+<!-- Search -->
+<div class="overlay" id="search" hidden>
+  <div class="dialog search-dialog" role="dialog" aria-modal="true" aria-labelledby="search-label">
+    <label id="search-label" class="mono-label" for="search-input">Fly to any scene</label>
+    <input id="search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Try “Sheesh Mahal”, “tigers”, “Udaipur”…" aria-controls="search-results" aria-describedby="search-hint">
+    <ul id="search-results" class="search-results" role="listbox" aria-label="Results"></ul>
+    <p id="search-hint" class="mono-label dim">↑ ↓ to choose · Enter to fly · Esc to close</p>
+  </div>
+</div>
+
+<!-- Help / first-visit hint -->
+<div class="overlay" id="hint" hidden>
+  <div class="dialog hint-dialog" role="dialog" aria-modal="true" aria-labelledby="hint-title">
+    <p class="mono-label" id="hint-title">How to move</p>
+    <p class="hint-line">Drag to look around <span>·</span> Click to zoom in <span>·</span> Click outside or Esc to zoom out</p>
+    <dl class="keys">
+      <div><dt>← →</dt><dd>Turn the view, or move to the next place</dd></div>
+      <div><dt>Tab · Enter</dt><dd>Step through hotspots, zoom in</dd></div>
+      <div><dt>Esc · Backspace</dt><dd>Zoom out one level</dd></div>
+      <div><dt>Shift + Esc</dt><dd>Back to the panorama</dd></div>
+      <div><dt>/</dt><dd>Search and fly to any scene</dd></div>
+      <div><dt>Wheel</dt><dd>Up over a hotspot to enter, down to leave</dd></div>
+      <div><dt>Touch</dt><dd>Swipe to turn, tap to enter, pinch in to leave</dd></div>
+    </dl>
+    <button class="btn" id="hint-ok" type="button">Start looking</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="sr-only" id="live" aria-live="polite" aria-atomic="true"></div>
+<noscript><div class="noscript">This experience needs JavaScript. Rajasthan (राजस्थान) is India's largest state: 342,239 km² of desert, hill forts and lakes.</div></noscript>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+<script src="js/geo.js" defer></script>
+<script src="js/photos.js" defer></script>
+<script src="js/data.js" defer></script>
+<script src="js/places.js" defer></script>
+<script src="js/util.js" defer></script>
+<script src="js/sound.js" defer></script>
+<script src="js/sky.js" defer></script>
+<script src="js/archetypes.js" defer></script>
+<script src="js/panorama.js" defer></script>
+<script src="js/tools.js" defer></script>
+<script src="js/app.js" defer></script>
+</body>
+</html>

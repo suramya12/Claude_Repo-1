@@ -21,6 +21,19 @@ An independent, interactive travel guide that makes the case for visiting Bhutan
 
 Every landscape is painted procedurally on `<canvas>` (`src/lib/scenes.ts`), so the site needs no image hosting. Licensed photographs replace a scene automatically when one is added for a place.
 
+## Rajasthan Panorama (`rajasthan/`)
+
+A second, separate piece: a 360° panoramic world for **Rajasthan, India**. You stand at the centre of the state and look around; places sit at their real compass bearings, themes hang in the sky and tools stand on the ground. Click to zoom into a place, and keep zooming: the deepest branch goes eight levels, from orbit to the craft of mirror inlay in Amber's Sheesh Mahal.
+
+- Plain HTML, CSS and JavaScript, no build step. d3 loads from cdnjs; if it fails, the globe and maps fall back to simpler drawings.
+- Content lives in `rajasthan/js/data.js` and `rajasthan/js/places.js` (one scene graph), rendering in `archetypes.js`, `panorama.js` and `tools.js`, the engine in `app.js`.
+- 73 licensed photos from Wikimedia Commons (CC BY, CC BY-SA or public domain), bundled at 1600 and 800 px, 24 MB in total. Credits are in the site's Credits scene and in `rajasthan/tools/photos/credits.json`. `.github/workflows/rajasthan-photos.yml` fetched and resized them.
+- Map outlines: Natural Earth (public domain), built into `js/geo.js` by `rajasthan/tools/build-geo.mjs`.
+
+Run it locally with any static server, e.g. `python3 -m http.server -d rajasthan 8000`, then open http://localhost:8000. The Pages deploy copies it to `/rajasthan/`.
+
+Fees, visa rules and festival dates were checked on 5 Oct 2026 and are marked "confirm before booking".
+
 ## Stack
 
 - [Astro](https://astro.build) static site, zero client framework. Each interactive component ships a small script.
