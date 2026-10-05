@@ -54,7 +54,7 @@
     const wrap = h('div.scene-head', { 'data-inert': '' },
       h('p.mono-label', { text: node.eyebrow }), h1, h('div.native', { lang: 'hi', text: D.meta.native }),
       h('p.line', { text: node.line }), stats, enter);
-    el.append(canvas, h('div.vignette'), target, wrap, h('p.note', { 'data-inert': '', text: node.note }));
+    el.append(canvas, h('div.vignette'), target, wrap, h('p.note', { 'data-inert': '', text: window.d3 ? node.note : 'Simplified globe: the mapping script did not load. Everything else works.' }));
     const d3 = window.d3;
     let raf = 0, paused = false;
     const center = [D.meta.viewer.lon, D.meta.viewer.lat];
@@ -513,6 +513,8 @@
       cur = U.clamp(i, 0, rooms.length - 1);
       roomEls.forEach((r, j) => r.classList.toggle('on', j === cur));
       planBtns.forEach((b, j) => b.setAttribute('aria-current', String(j === cur)));
+      // keep the current room in view when the plan strip scrolls (phones)
+      const pb = planBtns[cur]; if (plan.scrollWidth > plan.clientWidth) plan.scrollLeft = pb.offsetLeft - (plan.clientWidth - pb.offsetWidth) / 2;
       const r = rooms[cur];
       fill(text, h('p.mono-label', { text: `Room ${cur + 1} of ${rooms.length}${r.where ? ' · ' + r.where : ''}` }), h('h2.title', { text: r.name }), ...r.text.map((t) => h('p', { text: t })),
         r.go ? h('div.head-actions', null, h('button.btn', { type: 'button', 'data-go': r.go, text: `Enter · ${ctx.get(r.go).title}` })) : null);

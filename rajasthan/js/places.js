@@ -110,11 +110,11 @@
     place({ id: 'ranthambore', parent: 'wonders', band: 'horizon', order: 5, sil: 'fort', kind: 'Natural · tigers · UNESCO fort', title: 'Ranthambore', native: 'रणथंभौर', coords: [26.0173, 76.4560], cat: 'wildlife', photo: 'ranthambore', alt: 'A Bengal tiger lying in a waterhole in Ranthambore, looking at the camera', fy: 45,
       eyebrow: 'Wonder V · Wildlife · Sawai Madhopur · UNESCO fort', big: 'Tigers among the ruins', line: 'A tiger reserve where the Aravallis meet the Vindhyas, with a hill fort at its heart.', teaser: 'Wild tigers in dry forest, around a UNESCO hill fort.', aliases: ['tiger', 'safari', 'national park', 'sawai madhopur'],
       story: [
-        'Ranthambore National Park covers 1,334 km² of dry forest, lakes and ravines; the wider tiger reserve is larger. Its tigers are often seen by day, which made it one of the best-known places in India to watch them.',
+        'Ranthambore Tiger Reserve covers 1,334 km² of dry forest, lakes and ravines: the national park plus the Kailadevi and Sawai Man Singh sanctuaries, joined to it in 1992. Its tigers are often seen by day, which made it one of the best-known places in India to watch them.',
         'A hill fort stands inside the park. UNESCO listed it in 2013 among the Hill Forts of Rajasthan, and its Ganesha temple still draws pilgrims through the forest.',
         'Ranthambore also restocks other reserves. Since 2008 its tigers have been moved to Sariska, where poaching had wiped them out.',
       ],
-      facts: [['Park area', '1,334 km²'], ['Tigers', 'At least 40 (approx.)'], ['Season', 'Zones 1–5 open 1 Oct–30 Jun; zones 6–10 also in monsoon'], ['Safari', 'Gypsy (6 seats) or canter (20 seats), about 3 hours'], ['Safari seat', fee('ranthambore'), confirm], ['Booking', 'Official portal, up to 90 days ahead'], ['Fort', 'UNESCO 2013, Hill Forts of Rajasthan']],
+      facts: [['Tiger reserve', '1,334 km², with two sanctuaries'], ['Tigers', 'At least 40 (approx.)'], ['Season', 'Zones 1–5 open 1 Oct–30 Jun; zones 6–10 also in monsoon'], ['Safari', 'Gypsy (6 seats) or canter (20 seats), about 3 hours'], ['Safari seat', fee('ranthambore'), confirm], ['Booking', 'Official portal, up to 90 days ahead'], ['Fort', 'UNESCO 2013, Hill Forts of Rajasthan']],
       tips: ['Book on the official forest department portal as early as you can; zones are allotted.', 'Winter mornings in an open jeep are cold: bring a warm layer.', 'Do one morning and one afternoon safari; the light and the animals differ.'],
       nearby: ['bundi', 'chand-baori', 'ramgarh-crater'],
       spots: [

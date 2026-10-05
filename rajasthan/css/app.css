@@ -177,6 +177,7 @@ h1:focus, h2:focus { outline: none; }
 .pano.dragging { cursor: grabbing; }
 .pano .layer-hs { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 .pano .layer-hs .hs { pointer-events: auto; }
+.pano .layer-hs .hs.off { opacity: 0 !important; pointer-events: none; }
 .pano .lead { position: absolute; width: 1px; background: linear-gradient(rgba(242, 233, 216, 0.4), transparent); pointer-events: none; z-index: 4; }
 .pano-head { top: auto; bottom: 150px; }
 .pano-title { position: absolute; z-index: 6; left: 50%; top: 82px; transform: translateX(-50%); text-align: center; pointer-events: none; width: min(90vw, 760px); }
@@ -524,6 +525,7 @@ fieldset.field { border: 0; padding: 0; margin: 0 0 14px; }
   .place .scene-head h1 { font-size: 30px; }
   .place .scene-head .line { display: none; }
   .credit { left: 122px; right: 108px; bottom: 10px; top: auto; max-width: none; text-align: center; font-size: 8.5px; }
+  .place .credit { left: auto; right: 30px; max-width: calc(100vw - 46px); bottom: calc(46vh + 72px); text-align: right; padding: 3px 7px; border-radius: 6px; background: rgba(13, 10, 8, 0.72); }
   .compass { width: calc(100vw - 140px); left: auto; right: 10px; transform: none; bottom: 12px; height: 36px; }
   .timebar { bottom: 58px; left: auto; right: 10px; transform: none; }
   .timebar label { display: none; }
@@ -546,8 +548,9 @@ fieldset.field { border: 0; padding: 0; margin: 0 0 14px; }
   .story .st-img::after { background: linear-gradient(0deg, var(--bg) 25%, rgba(13, 10, 8, 0.55) 70%, rgba(13, 10, 8, 0.4)); }
   .story .st-text { top: auto; bottom: 130px; transform: none; }
   .story .st-text p { font-size: 15.5px; }
-  .room-text { bottom: 84px; }
-  .plan { max-width: calc(100vw - 20px); bottom: 66px; }
+  .room-text { bottom: 128px; left: 16px; right: 30px; }
+  .room-text p { font-size: 15px; }
+  .plan { left: 10px; right: 10px; max-width: none; transform: none; bottom: 64px; justify-content: flex-start; }
   .filters { left: 10px; right: 10px; bottom: 66px; max-width: none; }
   .legend, .map .aravalli-label { display: none; }
   .hs .lbl.two { max-width: 150px; }

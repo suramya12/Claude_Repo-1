@@ -308,8 +308,12 @@
     if (b) { e.preventDefault(); navigate(b.dataset.go, { from: b }); }
   });
 
-  let wheelAcc = 0, wheelT = 0, wheelLock = 0;
+  let wheelAcc = 0, wheelT = 0, wheelLock = 0, wheelGate = false;
   stage.addEventListener('wheel', (e) => {
+    // One gesture moves one level: after a zoom, wait for the wheel (or trackpad momentum) to pause.
+    const now = performance.now();
+    if (now - wheelT > 300) { wheelAcc = 0; wheelGate = false; }
+    wheelT = now;
     if (!cur || busy) { e.preventDefault(); return; }
     const sc = e.target.closest('.page, .scroll, .cu-list, .search-results');
     if (sc && sc.scrollHeight > sc.clientHeight + 2) {
@@ -317,13 +321,12 @@
       if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atEnd)) return; // let the card scroll itself
     }
     e.preventDefault();
-    const now = performance.now();
-    if (now - wheelT > 450) wheelAcc = 0; wheelT = now;
+    if (wheelGate) return;
     const hs = e.target.closest('[data-go]');
-    if (e.deltaY < -4 && hs && now > wheelLock) { wheelLock = now + 1200; navigate(hs.dataset.go, { from: hs }); return; }
+    if (e.deltaY < -4 && hs && now > wheelLock) { wheelLock = now + 900; wheelGate = true; navigate(hs.dataset.go, { from: hs }); return; }
     if (cur.inst.wheel && cur.inst.wheel(e)) return;
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && cur.inst.panBy) { cur.inst.panBy(e.deltaX); return; }
-    if (e.deltaY > 0) { wheelAcc += e.deltaY; if (wheelAcc > 240 && now > wheelLock) { wheelAcc = 0; wheelLock = now + 1200; zoomOut(); } }
+    if (e.deltaY > 0) { wheelAcc += e.deltaY; if (wheelAcc > 240 && now > wheelLock) { wheelAcc = 0; wheelLock = now + 900; wheelGate = true; zoomOut(); } }
   }, { passive: false });
 
   window.addEventListener('keydown', (e) => {

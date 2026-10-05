@@ -179,6 +179,7 @@
     { id: 'fees-composite', t: 'Jaipur monument ticket prices 2026 (Rajasthan Tour Trip)', u: 'https://www.rajasthantourtrip.com/blog/jaipur-monuments-timing-entry-fee.html' },
     { id: 'keoladeo-fee', t: 'ETV Bharat: Keoladeo fees revised from 1 April 2026', u: 'https://www.etvbharat.com/hi/state/increase-in-entry-and-boating-fees-at-keoladeo-national-park-effective-april-1-2026-rajasthan-news-rjs26040203984' },
     { id: 'ranthambore', t: 'Ranthambore safari booking (Rajasthan Forest Department)', u: 'https://ranthambhoresafari.rajasthan.gov.in/' },
+    { id: 'ranthambore-wwf', t: 'WWF India: Ranthambore Tiger Reserve (1,334 km², expanded in 1992)', u: 'https://www.wwfindia.org/about_wwf/critical_regions/national_parks_tiger_reserves/ranthambore_tiger_reserve/' },
     { id: 'festivals', t: 'Rajasthan Tourism: fairs and festivals 2024–2030 (PDF)', u: 'https://www.tourism.rajasthan.gov.in/content/dam/rajasthan-tourism/english/pdf/FairsandFestivals.pdf' },
     { id: 'jlf', t: 'Jaipur Literature Festival', u: 'https://www.jaipurliteraturefestival.org/' },
     { id: 'teej', t: 'Drik Panchang: Hariyali Teej 2027', u: 'https://www.drikpanchang.com/festivals/teej/hariyali-teej-date-time.html' },

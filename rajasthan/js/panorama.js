@@ -114,7 +114,7 @@
     let dragging = false, lastX = 0, lastT = 0;
     canvas.addEventListener('pointerdown', (e) => {
       dragging = true; lastX = e.clientX; lastT = performance.now(); vel = 0; target = null; el.classList.add('dragging');
-      canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* synthetic or already-released pointer */ }
     });
     canvas.addEventListener('pointermove', (e) => {
       if (!dragging) return;
@@ -242,10 +242,13 @@
         const dn = it.k.distance ? it.k.distance / maxDist : 0;
         const dy = it.kind === 'wonder' ? -it.lane * 46 : it.kind === 'region' ? it.lane * 40 : it.kind === 'theme' ? it.lane * 36 : -it.lane * 40;
         const sc = it.kind === 'wonder' ? 1.08 - dn * 0.32 : 1;
-        it.b.style.transform = `translate(${it.x}px, ${it.y + dy}px) translate(-50%, -50%) scale(${sc.toFixed(3)})`;
+        // Off-screen hotspots stay in the tab order (focus turns the view to them), parked
+        // transparent inside the frame so focusing them never scrolls the stage.
+        const px = it.on ? it.x : U.clamp(it.x, 30, W - 30);
+        it.b.style.transform = `translate(${px}px, ${it.y + dy}px) translate(-50%, -50%) scale(${sc.toFixed(3)})`;
         it.b.style.left = '0px'; it.b.style.top = '0px';
         it.b.style.opacity = it.kind === 'wonder' ? (1 - dn * 0.35).toFixed(2) : '';
-        it.b.style.visibility = it.on ? '' : 'hidden';
+        it.b.classList.toggle('off', !it.on);
         if (it.lane && it.on && (it.kind === 'wonder' || it.kind === 'region')) {
           const top = Math.min(it.y, it.y + dy), hgt = Math.abs(dy);
           it.lead.style.cssText = `left:${it.x}px;top:${top}px;height:${hgt}px;display:block`;
