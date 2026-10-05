@@ -176,7 +176,7 @@
       // preload children photos
       nodes.get(id).children.forEach((c) => ctx.preload(c));
     } finally {
-      busy = false;
+      busy = false; settledT = performance.now();
       if (queued) { const q = queued; queued = null; navigate(q[0], q[1]); }
     }
   }
@@ -308,11 +308,13 @@
     if (b) { e.preventDefault(); navigate(b.dataset.go, { from: b }); }
   });
 
-  let wheelAcc = 0, wheelT = 0, wheelLock = 0, wheelGate = false;
+  let wheelAcc = 0, wheelT = 0, wheelLock = 0, wheelGate = false, settledT = 0;
   stage.addEventListener('wheel', (e) => {
     // One gesture moves one level: after a zoom, wait for the wheel (or trackpad momentum) to pause.
     const now = performance.now();
-    if (now - wheelT > 300) { wheelAcc = 0; wheelGate = false; }
+    // a pause after the zoom has settled ends the gesture that zoomed (jank mid-transition doesn't count)
+    if (!busy && now - Math.max(wheelT, settledT) > 400) wheelGate = false;
+    if (now - wheelT > 600) wheelAcc = 0; // slow notches of a mouse wheel still add up
     wheelT = now;
     if (!cur || busy) { e.preventDefault(); return; }
     const sc = e.target.closest('.page, .scroll, .cu-list, .search-results');
@@ -349,14 +351,20 @@
   });
   window.addEventListener('keyup', (e) => { if (cur && cur.inst.arrowUp && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) cur.inst.arrowUp(); });
 
+  // An anchor that is not a scene (e.g. an in-page link) leaves the view where it is.
+  const keepView = () => { if (cur) history.replaceState({ id: cur.id }, '', '#' + cur.id); };
   window.addEventListener('popstate', () => {
     const id = decodeURIComponent(location.hash.slice(1)) || rootId;
-    if (!cur || id !== cur.id) navigate(nodes.has(id) ? id : rootId, { push: false });
+    if (!nodes.has(id)) return keepView();
+    if (!cur || id !== cur.id) navigate(id, { push: false });
   });
   window.addEventListener('hashchange', () => {
     const id = decodeURIComponent(location.hash.slice(1)) || rootId;
-    if (cur && id !== cur.id && !busy) navigate(nodes.has(id) ? id : rootId, { push: false });
+    if (!nodes.has(id)) return keepView();
+    if (cur && id !== cur.id && !busy) navigate(id, { push: false });
   });
+  const skip = document.querySelector('.skip');
+  if (skip) skip.addEventListener('click', (e) => { e.preventDefault(); if (cur && cur.inst.focusStart) cur.inst.focusStart(); else stage.focus(); });
   document.addEventListener('visibilitychange', () => {
     if (!cur) return;
     if (document.hidden) { cur.inst.pause && cur.inst.pause(); window.SND && SND.suspend(); }
@@ -372,7 +380,9 @@
   document.getElementById('btn-saved').addEventListener('click', () => navigate(D.meta.savedNode));
   document.getElementById('btn-help').addEventListener('click', () => openOverlay(document.getElementById('hint')));
   document.getElementById('btn-link').addEventListener('click', async () => {
-    const url = location.href;
+    // Inside an embedding frame (a hosted preview), share the page that embeds us, with this view's anchor.
+    let url = location.href;
+    try { const r = document.referrer; if (window.top !== window && /^https:\/\/[^/]*claude\.ai\/.*artifact/.test(r)) url = r.split('#')[0] + location.hash; } catch (e) { /* keep location.href */ }
     try { await navigator.clipboard.writeText(url); toast('Link copied. It opens this exact view.'); }
     catch (e) { toast('Copy this link:', { select: url }); }
   });
